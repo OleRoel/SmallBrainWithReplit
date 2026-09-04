@@ -5,6 +5,12 @@ dist
 tmp
 out-tsc
 *.tsbuildinfo
+.stack-work/
+dist-newstyle/
+.cabal-sandbox/
+cabal.project.local
+cabal.project.local~
+*.cabal.sandbox.config
 .expo
 .expo-shared
 
