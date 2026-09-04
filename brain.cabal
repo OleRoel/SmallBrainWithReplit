@@ -10,7 +10,4 @@ executable brain
   ghc-options: -Wall -O2
   build-depends:
       base >= 4.20 && < 5
-    , containers
-    , hmatrix
     , random
-    , vector

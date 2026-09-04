@@ -1,0 +1,1 @@
+- [Haskell native linear algebra](haskell-native-linalg.md) — the available OpenBLAS build uses 64-bit integers and is incompatible with hmatrix's expected ABI.

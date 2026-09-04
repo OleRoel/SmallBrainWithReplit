@@ -1,7 +1,8 @@
 # Brain
 
 A small feed-forward neural network in Haskell using ReLU activations and
-stochastic gradient descent.
+stochastic gradient descent. The runnable version uses pure Haskell matrix
+operations, so it does not need native BLAS/LAPACK libraries.
 
 ## Run
 

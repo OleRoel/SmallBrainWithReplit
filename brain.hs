@@ -1,117 +1,119 @@
-#!/usr/bin/env cabal
-{- cabal:
-  build-depends: base >= 4, containers, vector, hmatrix, random
--}
-
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 -- | A minimal feed-forward neural network with ReLU activations,
 -- trained by stochastic gradient descent.
 --
--- Network layout: weights are stored as (input x output) matrices,
--- so the forward pass is @inputs <# weights + bias@.
+-- This runnable version keeps the network logic from the imported Gist while
+-- using small pure-Haskell vector and matrix operations. That keeps the demo
+-- portable and avoids requiring a platform-specific BLAS installation.
 
-import Numeric.LinearAlgebra
-import System.Random
-import Control.Monad
+import Control.Monad (replicateM, zipWithM)
+import Data.List (transpose)
+import System.Random (randomRIO)
 
 -- ---------------------------------------------------------------------------
 -- Types
 -- ---------------------------------------------------------------------------
 
+type Vector = [Double]
+type Matrix = [[Double]]
+
 -- | One network layer: bias vector (output size) and
 -- weight matrix (input size x output size).
-type Layer = (Vector Double, Matrix Double)
+type Layer = (Vector, Matrix)
 
 -- | A network is a list of layers, applied left to right.
 type Brain = [Layer]
 
 -- ---------------------------------------------------------------------------
--- Unicode linear algebra operators
+-- Vector and matrix operations
 -- ---------------------------------------------------------------------------
 
--- | Scaling by a scalar: 0x22C5 DOT OPERATOR ⋅
-class Scaling a b c | a b -> c where
-  infixl 7 ⋅
-  (⋅) :: a -> b -> c
+dot :: Vector -> Vector -> Double
+dot xs ys = sum (zipWith (*) xs ys)
 
-instance (Num t) => Scaling t t t where
-  (⋅) = (*)
+addVector :: Vector -> Vector -> Vector
+addVector = zipWith (+)
 
-instance (Container Vector t) => Scaling t (Vector t) (Vector t) where
-  (⋅) = scale
+subVector :: Vector -> Vector -> Vector
+subVector = zipWith (-)
 
-instance (Container Vector t) => Scaling (Vector t) t (Vector t) where
-  (⋅) = flip scale
+hadamard :: Vector -> Vector -> Vector
+hadamard = zipWith (*)
 
-instance (Num t, Container Vector t) => Scaling t (Matrix t) (Matrix t) where
-  (⋅) = scale
+scaleVector :: Double -> Vector -> Vector
+scaleVector scalar = map (scalar *)
 
-instance (Num t, Container Vector t) => Scaling (Matrix t) t (Matrix t) where
-  (⋅) = flip scale
+scaleMatrix :: Double -> Matrix -> Matrix
+scaleMatrix scalar = map (scaleVector scalar)
 
--- | Contraction (dot product, matrix-vector and matrix-matrix product):
--- 0x00D7 MULTIPLICATION SIGN ×
-class Mul a b c | a b -> c, a c -> b, b c -> a where
-  infixl 7 ×
-  (×) :: a -> b -> c
+outer :: Vector -> Vector -> Matrix
+outer xs ys = map (\x -> scaleVector x ys) xs
 
-instance (Product t) => Mul (Vector t) (Vector t) t where
-  (×) = udot
+-- | Row-vector times matrix. The matrix is stored as input rows by output
+-- columns, matching the layout used in the original Gist.
+rowTimesMatrix :: Vector -> Matrix -> Vector
+rowTimesMatrix inputs weights =
+  map (dot inputs) (transpose weights)
 
-instance (Numeric t, Product t) => Mul (Matrix t) (Vector t) (Vector t) where
-  (×) = (#>)
+-- | Matrix times column-vector.
+matrixTimesVector :: Matrix -> Vector -> Vector
+matrixTimesVector matrix values =
+  map (`dot` values) matrix
 
-instance (Numeric t, Product t) => Mul (Vector t) (Matrix t) (Vector t) where
-  (×) = (<#)
-
-instance (Numeric t, Product t) => Mul (Matrix t) (Matrix t) (Matrix t) where
-  (×) = (Numeric.LinearAlgebra.<>)
+subMatrix :: Matrix -> Matrix -> Matrix
+subMatrix = zipWith (zipWith (-))
 
 -- ---------------------------------------------------------------------------
 -- Activation function
 -- ---------------------------------------------------------------------------
 
--- | Rectified linear unit, applied element-wise to a vector
-relu :: Vector Double -> Vector Double
-relu = cmap (max 0)
+relu :: Vector -> Vector
+relu = map (max 0)
 
 -- | Derivative of ReLU (0 for negative input, 1 otherwise)
 relu' :: Double -> Double
-relu' x | x < 0     = 0
-        | otherwise = 1
+relu' x
+  | x < 0 = 0
+  | otherwise = 1
 
 -- ---------------------------------------------------------------------------
 -- Network initialisation
 -- ---------------------------------------------------------------------------
 
 -- | Draw one sample from a Gaussian distribution with the given
--- standard deviation (Box-Muller transform)
+-- standard deviation (Box-Muller transform).
 gauss :: Double -> IO Double
 gauss stdev = do
-  x1 <- randomIO
-  x2 <- randomIO
-  return $ stdev * sqrt (-2 * log x1) * cos (2 * pi * x2)
+  x1 <- randomRIO (1e-12, 1.0)
+  x2 <- randomRIO (0.0, 1.0)
+  pure $ stdev * sqrt (-2 * log x1) * cos (2 * pi * x2)
 
 -- | A vector of n ones (initial biases)
-ones :: Int -> Vector Double
-ones = konst 1
+ones :: Int -> Vector
+ones n = replicate n 1
+
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n xs
+  | n <= 0 = []
+  | otherwise =
+      let (chunk, rest) = splitAt n xs
+       in chunk : chunksOf n rest
 
 -- | An (m x n) matrix of small Gaussian random values (initial weights)
-randomMatrix :: Int -> Int -> IO (Matrix Double)
-randomMatrix m n = (m >< n) <$> replicateM (m * n) (gauss 0.01)
+randomMatrix :: Int -> Int -> IO Matrix
+randomMatrix m n = do
+  values <- replicateM (m * n) (gauss 0.01)
+  pure (chunksOf n values)
 
 -- | Create a network from a list of layer sizes,
 -- e.g. @newBrain [784, 30, 10]@ builds two layers: 784→30 and 30→10.
 -- Biases start at 1, weights are small Gaussian random values.
 newBrain :: [Int] -> IO Brain
-newBrain szs@(_:ts) = zip (ones <$> ts) <$> zipWithM randomMatrix szs ts
-newBrain []         = return []
+newBrain sizes@(_:layerSizes) =
+  zip (map ones layerSizes) <$> zipWithM randomMatrix sizes layerSizes
+newBrain [] = pure []
 
 -- ---------------------------------------------------------------------------
 -- Forward pass
@@ -119,23 +121,25 @@ newBrain []         = return []
 
 -- | Weighted input of one layer (before activation):
 -- z = inputs × weights + bias
-zLayer :: Vector Double -> Layer -> Vector Double
-zLayer inputs (bias, weights) = inputs × weights + bias
+zLayer :: Vector -> Layer -> Vector
+zLayer inputs (bias, weights) =
+  addVector (rowTimesMatrix inputs weights) bias
 
 -- | Run the network: feed the input through every layer,
--- applying ReLU after each weighted sum
-feed :: Vector Double -> Brain -> Vector Double
-feed = foldl' ((relu .) . zLayer)
+-- applying ReLU after each weighted sum.
+feed :: Vector -> Brain -> Vector
+feed = foldl' (\activation layer -> relu (zLayer activation layer))
 
 -- | Forward pass that keeps intermediate results for backpropagation.
 -- Returns (activations, weighted inputs), both newest-first, i.e. output
 -- layer at the head. The activations include the input vector (at the tail).
-revaz :: Vector Double -> Brain -> ([Vector Double], [Vector Double])
+revaz :: Vector -> Brain -> ([Vector], [Vector])
 revaz inputs = foldl' step ([inputs], [])
   where
-    step (avs@(av:_), zs) layer =
-        let z = zLayer av layer
-        in  (relu z : avs, z : zs)
+    step (activations@(activation:_), zs) layer =
+      let z = zLayer activation layer
+       in (relu z : activations, z : zs)
+    step ([], zs) _ = ([], zs)
 
 -- ---------------------------------------------------------------------------
 -- Backpropagation
@@ -145,16 +149,20 @@ revaz inputs = foldl' step ([inputs], [])
 -- forward order). The delta of the output layer is the cost derivative
 -- (activation - expected) times relu'; earlier deltas are propagated
 -- backwards through the weight matrices.
-deltas :: Vector Double -> Vector Double -> Brain -> ([Vector Double], [Vector Double])
+deltas :: Vector -> Vector -> Brain -> ([Vector], [Vector])
 deltas inputs expected layers =
-    let (avs@(av:_), zv:zvs) = revaz inputs layers
-        delta0 = (av - expected) * cmap relu' zv
-    in  (reverse avs, backward (snd <$> reverse layers) zvs [delta0])
+  case revaz inputs layers of
+    (activations@(output:_), outputZ:earlierZs) ->
+      let outputDelta = hadamard (subVector output expected) (map relu' outputZ)
+       in (reverse activations, backward (map snd (reverse layers)) earlierZs [outputDelta])
+    (activations, _) -> (reverse activations, [])
   where
-    -- Walk backwards: propagate each delta through its weight matrix
-    backward _ [] dvs = dvs
-    backward (wm:wms) (zv:zvs) dvs@(dv:_) =
-        backward wms zvs $ (wm × dv) * cmap relu' zv : dvs
+    -- Walk backwards: propagate each delta through its weight matrix.
+    backward _ [] deltas' = deltas'
+    backward (weights:remainingWeights) (z:remainingZs) deltas'@(delta:_) =
+      let propagated = hadamard (matrixTimesVector weights delta) (map relu' z)
+       in backward remainingWeights remainingZs (propagated : deltas')
+    backward _ _ deltas' = deltas'
 
 -- ---------------------------------------------------------------------------
 -- Training
@@ -167,18 +175,22 @@ eta = 0.002
 -- | Update one layer: subtract the scaled gradients from bias and weights.
 -- av is the layer's input activation, dv its delta; the weight gradient
 -- is their outer product (input size x output size, matching zLayer).
-descend :: Layer -> Vector Double -> Vector Double -> Layer
-descend (b, w) av dv = (b - eta ⋅ dv, w - eta ⋅ outer av dv)
+descend :: Layer -> Vector -> Vector -> Layer
+descend (bias, weights) activation delta =
+  ( subVector bias (scaleVector eta delta)
+  , subMatrix weights (scaleMatrix eta (outer activation delta))
+  )
 
--- | One training step: backpropagate a single sample and update every layer
-learn :: Vector Double -> Vector Double -> Brain -> Brain
-learn xv yv layers =
-    let (avs, dvs) = deltas xv yv layers
-    in  zipWith3 descend layers avs dvs
+-- | One training step: backpropagate a single sample and update every layer.
+learn :: Vector -> Vector -> Brain -> Brain
+learn input expected layers =
+  let (activations, deltas') = deltas input expected layers
+   in zipWith3 descend layers activations deltas'
 
--- | Train on a list of (input, expected) samples sequentially
-learnMany :: [(Vector Double, Vector Double)] -> Brain -> Brain
-learnMany samples layers = foldl' (\lys (xv, yv) -> learn xv yv lys) layers samples
+-- | Train on a list of (input, expected) samples sequentially.
+learnMany :: [(Vector, Vector)] -> Brain -> Brain
+learnMany samples layers =
+  foldl' (\current (input, expected) -> learn input expected current) layers samples
 
 -- ---------------------------------------------------------------------------
 -- Demo
@@ -187,9 +199,9 @@ learnMany samples layers = foldl' (\lys (xv, yv) -> learn xv yv lys) layers samp
 main :: IO ()
 main = do
   brain <- newBrain [4, 3, 2]
-  let xv      = vector [1, 2, 3, 4]
-      yv      = vector [1, 0]
-      trained = iterate (learn xv yv) brain !! 100
-  putStrLn $ "before: " ++ show (feed xv brain)
-  putStrLn $ "after:  " ++ show (feed xv trained)
-  putStrLn $ "target: " ++ show yv
+  let input = [1, 2, 3, 4]
+      target = [1, 0]
+      trained = iterate (learn input target) brain !! 100
+  putStrLn $ "before: " ++ show (feed input brain)
+  putStrLn $ "after:  " ++ show (feed input trained)
+  putStrLn $ "target: " ++ show target
