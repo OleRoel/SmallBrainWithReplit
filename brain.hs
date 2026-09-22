@@ -8,15 +8,13 @@
 -- portable and avoids requiring a platform-specific BLAS installation.
 
 import Control.Monad (replicateM, zipWithM)
-import Data.List (transpose)
+import Data.List     (transpose)
 import System.Random (randomRIO)
+import LinAlg
 
 -- ---------------------------------------------------------------------------
 -- Types
 -- ---------------------------------------------------------------------------
-
-type Vector = [Double]
-type Matrix = [[Double]]
 
 -- | One network layer: bias vector (output size) and
 -- weight matrix (input size x output size).
@@ -24,45 +22,6 @@ type Layer = (Vector, Matrix)
 
 -- | A network is a list of layers, applied left to right.
 type Brain = [Layer]
-
--- ---------------------------------------------------------------------------
--- Vector and matrix operations
--- ---------------------------------------------------------------------------
-
-dot :: Vector -> Vector -> Double
-dot xs ys = sum (zipWith (*) xs ys)
-
-addVector :: Vector -> Vector -> Vector
-addVector = zipWith (+)
-
-subVector :: Vector -> Vector -> Vector
-subVector = zipWith (-)
-
-hadamard :: Vector -> Vector -> Vector
-hadamard = zipWith (*)
-
-scaleVector :: Double -> Vector -> Vector
-scaleVector scalar = map (scalar *)
-
-scaleMatrix :: Double -> Matrix -> Matrix
-scaleMatrix scalar = map (scaleVector scalar)
-
-outer :: Vector -> Vector -> Matrix
-outer xs ys = map (\x -> scaleVector x ys) xs
-
--- | Row-vector times matrix. The matrix is stored as input rows by output
--- columns, matching the layout used in the original Gist.
-rowTimesMatrix :: Vector -> Matrix -> Vector
-rowTimesMatrix inputs weights =
-  map (dot inputs) (transpose weights)
-
--- | Matrix times column-vector.
-matrixTimesVector :: Matrix -> Vector -> Vector
-matrixTimesVector matrix values =
-  map (`dot` values) matrix
-
-subMatrix :: Matrix -> Matrix -> Matrix
-subMatrix = zipWith (zipWith (-))
 
 -- ---------------------------------------------------------------------------
 -- Activation function
@@ -188,9 +147,59 @@ learn input expected layers =
    in zipWith3 descend layers activations deltas'
 
 -- | Train on a list of (input, expected) samples sequentially.
+{--
 learnMany :: [(Vector, Vector)] -> Brain -> Brain
 learnMany samples layers =
   foldl' (\current (input, expected) -> learn input expected current) layers samples
+--}
+
+
+-- ---------------------------------------------------------------------------
+-- Weight export – Clash Vec literal format
+-- ---------------------------------------------------------------------------
+
+-- | Render a Double safely for embedding in a Clash Vec literal.
+-- Negative values are parenthesised to prevent (:>) being mis-parsed as
+-- binary subtraction, e.g. @a :> -1.0 :> Nil@ → @a :> (-1.0) :> Nil@.
+showW :: Double -> String
+showW x
+  | x < 0    = "(" ++ show x ++ ")"
+  | otherwise = show x
+
+-- | Render a list of Doubles as a Clash Vec literal: @(a :> b :> c :> Nil)@
+clashVec :: [Double] -> String
+clashVec xs = "(" ++ concatMap (\x -> showW x ++ " :> ") xs ++ "Nil)"
+
+-- | Render a weight matrix as a multi-line Clash Vec-of-Vec literal.
+-- Each row sits on its own line; continuation @:>@ lines are indented to
+-- align with the opening parenthesis of the first row.
+clashMatrix :: [[Double]] -> String
+clashMatrix []     = "Nil"
+clashMatrix (r:rs) = clashVec r
+  ++ concatMap (\row -> "\n      :> " ++ clashVec row) rs
+  ++ "\n      :> Nil"
+
+-- | Render a Layer as a Clash @(biases, weights)@ tuple literal.
+-- The weight matrix is transposed from brain.hs's input-major storage
+-- (weights[input][output]) to BrainClash's output-major storage
+-- (weights[output][input], one row per output neuron).
+clashLayer :: Layer -> String
+clashLayer (bias, weights) =
+     "( " ++ clashVec bias ++ "\n"
+  ++ "    , " ++ clashMatrix (transpose weights) ++ "\n"
+  ++ "    )"
+
+-- | Print a complete @trainedBrain@ binding ready to paste into BrainClash.hs.
+printClashWeights :: Brain -> IO ()
+printClashWeights [l1, l2] = putStrLn $
+     "-- Paste into BrainClash.hs, replacing trainedBrain:\n"
+  ++ "trainedBrain :: Brain4_3_2\n"
+  ++ "trainedBrain =\n"
+  ++ "  ( " ++ clashLayer l1 ++ "\n"
+  ++ "  , " ++ clashLayer l2 ++ "\n"
+  ++ "  )"
+printClashWeights _ =
+  putStrLn "-- printClashWeights: expected exactly 2 layers"
 
 -- ---------------------------------------------------------------------------
 -- Demo
@@ -205,3 +214,5 @@ main = do
   putStrLn $ "before: " ++ show (feed input brain)
   putStrLn $ "after:  " ++ show (feed input trained)
   putStrLn $ "target: " ++ show target
+  putStrLn ""
+  printClashWeights trained
