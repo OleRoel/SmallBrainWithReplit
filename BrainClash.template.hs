@@ -109,19 +109,7 @@ forward (l1, l2) input =
 -- training run. Keep the generated values as compile-time constants.
 -- GENERATED_WEIGHTS_BEGIN
 trainedBrain :: Brain4_3_2
-trainedBrain =
-  ( ( ($$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> Nil)
-    , ($$(fLit (-3.90625e-3)) :> $$(fLit (1.171875e-2)) :> $$(fLit (2.734375e-2)) :> $$(fLit (3.515625e-2)) :> Nil)
-      :> ($$(fLit (-3.90625e-3)) :> $$(fLit (1.5625e-2)) :> $$(fLit (1.953125e-2)) :> $$(fLit (5.46875e-2)) :> Nil)
-      :> ($$(fLit (1.953125e-2)) :> $$(fLit (1.171875e-2)) :> $$(fLit (3.515625e-2)) :> $$(fLit (3.515625e-2)) :> Nil)
-      :> Nil
-    )
-  , ( ($$(fLit (1.0)) :> $$(fLit (0.875)) :> Nil)
-    , ($$(fLit (-7.8125e-3)) :> $$(fLit (1.953125e-2)) :> $$(fLit (-1.171875e-2)) :> Nil)
-      :> ($$(fLit (-0.140625)) :> $$(fLit (-0.14453125)) :> $$(fLit (-0.1484375)) :> Nil)
-      :> Nil
-    )
-  )
+trainedBrain = errorX "Run cabal run train to generate trainedBrain"
 -- GENERATED_WEIGHTS_END
 
 -- ---------------------------------------------------------------------------

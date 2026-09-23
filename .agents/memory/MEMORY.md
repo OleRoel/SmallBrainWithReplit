@@ -1,1 +1,2 @@
 - [Haskell native linear algebra](haskell-native-linalg.md) — the available OpenBLAS build uses 64-bit integers and is incompatible with hmatrix's expected ABI.
+- [Clash weight generation](clash-weight-generation.md) — generated fixed-point constants must use fLit, and standalone Clash needs Cabal's package environment.

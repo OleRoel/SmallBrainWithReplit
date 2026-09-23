@@ -1,0 +1,44 @@
+{
+    "components": [
+        "brain_infer"
+    ],
+    "dependencies": {
+        "transitive": []
+    },
+    "domains": {},
+    "files": [
+        {
+            "name": "brain_infer_types.vhdl",
+            "sha256": "b29803f5c180718aa8b7e6859d347821abb82b2e7cd04762dd49bc7a96f4ae02"
+        },
+        {
+            "name": "brain_infer.vhdl",
+            "sha256": "362fd1440235099994bbcd4429244be0b5493466735fb8d1c8539eb8f9999cca"
+        }
+    ],
+    "flags": [
+        20,
+        20
+    ],
+    "hash": "ebbe56218473033e3bcf4381ab75d5e28e2c8a16848952e381eac320b6aaefc0",
+    "top_component": {
+        "name": "brain_infer",
+        "ports_flat": [
+            {
+                "direction": "in",
+                "is_clock": false,
+                "name": "input",
+                "type_name": "std_logic_vector(63 downto 0)",
+                "width": 64
+            },
+            {
+                "direction": "out",
+                "is_clock": false,
+                "name": "output",
+                "type_name": "std_logic_vector(31 downto 0)",
+                "width": 32
+            }
+        ]
+    },
+    "version": "unstable"
+}
