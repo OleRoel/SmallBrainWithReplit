@@ -1,0 +1,13 @@
+# Only send portable sources; exclude Replit binaries, caches, secrets,
+# generated object files, and workspace metadata from the build context.
+**
+!Dockerfile
+!.dockerignore
+!brain.cabal
+!cabal.project
+!brain.hs
+!Train.hs
+!BrainTrain.hs
+!LinAlg.hs
+!BrainClash.hs
+!BrainClash.template.hs

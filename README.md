@@ -49,7 +49,51 @@ cabal build brain-clash
 cabal exec -- sh -c './bin/clash --vhdl BrainClash.hs'
 ```
 
-## Clash HDL
+## Docker (outside Replit)
+
+Build the image on a machine with Docker installed:
+
+```bash
+docker build -t haskell-brain .
+```
+
+The first build compiles Clash 1.10.2 and its dependencies, so it can take
+considerable time and disk space. Later builds reuse Docker's cached layers.
+The image includes GHC 9.10.3, Cabal, the trainer, and Clash; it intentionally
+keeps the compiler toolchain so new architectures can be synthesized at runtime.
+The image build also checks that the bundled network synthesizes successfully.
+
+Run the default training demo (prints results, then exits):
+
+```bash
+docker run --rm haskell-brain
+```
+
+Train the default network and save its generated Haskell and VHDL to a local
+`output` directory (commands below use a POSIX shell):
+
+```bash
+mkdir -p output
+docker run --rm -v "$(pwd)/output:/output" haskell-brain sh -c \
+  'cabal run train &&
+   cabal exec -- clash --vhdl BrainClash.hs -fclash-hdldir /output/vhdl &&
+   cp BrainClash.hs /output/BrainClash.hs'
+```
+
+For another architecture, replace `cabal run train` in that command with
+`cabal run train -- 4 5 3 2`. For Verilog, replace `--vhdl` with `--verilog`
+and use `/output/verilog` for the HDL directory.
+
+Only the mounted output directory persists after `--rm`; without a mount,
+generated files are lost when the container is removed. On Linux, files in
+the output directory may be owned by root.
+
+This is a command-line batch workload, not a web server: no port mapping is
+needed. Run it as a container job on other hosting platforms, not as an HTTP
+service. Docker containers are intended to be built and run outside this
+Replit workspace.
+
+## Local Clash installation
 
 Clash 1.10.2 is installed in `bin/`.
 
