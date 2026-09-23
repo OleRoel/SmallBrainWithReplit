@@ -99,6 +99,8 @@ layerForward inputs (biases, weights) =
 -- Generated architecture and weights. Do not edit this block.
 type Brain4_3_2 = (Layer 4 3, Layer 3 2)
 
+type BrainInput = Vec 4 Weight
+
 forward :: Brain4_3_2 -> Vec 4 Weight -> Vec 2 Weight
 forward (l1, l2) input =
   let a1 = layerForward input l1
@@ -107,14 +109,14 @@ forward (l1, l2) input =
 trainedBrain :: Brain4_3_2
 trainedBrain =
   ( ( ($$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> Nil)
-    , ($$(fLit (7.8125e-3)) :> $$(fLit (7.8125e-3)) :> $$(fLit (3.90625e-2)) :> $$(fLit (7.8125e-3)) :> Nil)
-      :> ($$(fLit (7.8125e-3)) :> $$(fLit (1.953125e-2)) :> $$(fLit (2.34375e-2)) :> $$(fLit (2.734375e-2)) :> Nil)
-      :> ($$(fLit (0.0)) :> $$(fLit (7.8125e-3)) :> $$(fLit (2.34375e-2)) :> $$(fLit (3.90625e-2)) :> Nil)
+    , ($$(fLit (0.0)) :> $$(fLit (1.953125e-2)) :> $$(fLit (4.296875e-2)) :> $$(fLit (5.859375e-2)) :> Nil)
+      :> ($$(fLit (0.0)) :> $$(fLit (2.734375e-2)) :> $$(fLit (3.90625e-2)) :> $$(fLit (2.734375e-2)) :> Nil)
+      :> ($$(fLit (-7.8125e-3)) :> $$(fLit (1.171875e-2)) :> $$(fLit (7.8125e-3)) :> $$(fLit (2.734375e-2)) :> Nil)
       :> Nil
     )
-  , ( ($$(fLit (0.99609375)) :> $$(fLit (0.859375)) :> Nil)
-    , ($$(fLit (0.0)) :> $$(fLit (7.8125e-3)) :> $$(fLit (7.8125e-3)) :> Nil)
-      :> ($$(fLit (-0.12890625)) :> $$(fLit (-0.1328125)) :> $$(fLit (-0.12890625)) :> Nil)
+  , ( ($$(fLit (1.00390625)) :> $$(fLit (0.87109375)) :> Nil)
+    , ($$(fLit (0.0)) :> $$(fLit (-3.90625e-3)) :> $$(fLit (-3.90625e-3)) :> Nil)
+      :> ($$(fLit (-0.15625)) :> $$(fLit (-0.14453125)) :> $$(fLit (-0.125)) :> Nil)
       :> Nil
     )
   )

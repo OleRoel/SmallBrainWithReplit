@@ -11,3 +11,7 @@
 !LinAlg.hs
 !BrainClash.hs
 !BrainClash.template.hs
+!ServoPWM.hs
+!BrainServo.hs
+!tests/
+!tests/ServoTests.hs

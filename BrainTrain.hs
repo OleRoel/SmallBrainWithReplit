@@ -303,6 +303,7 @@ generatedNetwork trained =
           ++ "topEntity = BrainClash.forward trainedBrain"
    in "-- Generated architecture and weights. Do not edit this block.\n"
         ++ "type " ++ name ++ " = " ++ tupleType layerTypes ++ "\n\n"
+        ++ "type BrainInput = Vec " ++ show inputSize ++ " Weight\n\n"
         ++ forward ++ "\n\n"
         ++ trainedValue ++ "\n\n"
         ++ top

@@ -14,3 +14,14 @@ into fixed-point constants.
 **How to apply:** Quantize training values before rendering, emit `$$(fLit (...))`,
 and invoke the installed Clash compiler through Cabal's package environment, for
 example `cabal exec -- sh -c './bin/clash --vhdl BrainClash.hs'`.
+
+Install local Clash executables with `--install-method=copy` rather than
+relying on Cabal-store symlinks.
+
+**Why:** A later workspace session retained `bin/clash` but not its target
+outside the workspace. Earlier successful synthesis did not mean the compiler
+was still available; invoking the broken link reported "not found".
+
+**How to apply:** Check that the local compiler actually runs before promising
+HDL verification. A source build and Clash simulation alone do not verify HDL
+generation.

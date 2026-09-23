@@ -49,6 +49,20 @@ cabal build brain-clash
 cabal exec -- sh -c './bin/clash --vhdl BrainClash.hs'
 ```
 
+## Servo PWM (code and simulation)
+
+`ServoPWM.hs` adds a clocked PWM generator; `BrainServo.hs` connects the first
+network output to it. The provisional mapping is `0…1` → `1…2 ms` pulses in
+a `20 ms` frame, using a `50 MHz` clock.
+
+```bash
+cabal test servo-tests --test-show-details=direct
+```
+
+See [the implementation strategy](docs/servo-implementation.md) for the signal
+flow, reset/enable behaviour, VHDL commands, and deferred board work. The Diamond
+D47 timings, wiring, and power supply have **not** been hardware-verified.
+
 ## Docker (outside Replit)
 
 Build the image on a machine with Docker installed:

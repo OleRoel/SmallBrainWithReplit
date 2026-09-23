@@ -49,6 +49,11 @@ The Clash compiler and interactive shell are installed in `bin/`:
 
 ## Project files
 
+Servo code is currently simulation-only; power checks and Quartus board
+assignments are deferred. See `docs/servo-implementation.md`. Run its checks
+with `cabal test servo-tests`. `ServoPWM.hs` is the standalone clocked PWM
+module; `BrainServo.hs` maps the first network output to it.
+
 - `BrainTrain.hs` — reusable training and Clash-source generation logic
 - `brain.hs` — training demo
 - `Train.hs` — trains and generates `BrainClash.hs`
