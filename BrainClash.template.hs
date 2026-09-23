@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell  #-}
--- {-# LANGUAGE TypeOperators     #-}
 
 -- | Clash-synthesizable inference core for the 'brain' neural network.
 --
