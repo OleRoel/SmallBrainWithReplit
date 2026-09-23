@@ -79,18 +79,18 @@ begin
   end generate;
   -- zipWith end
 
-  \c$vec\ <= brain_infer_types.array_of_array_of_4_signed_16'( brain_infer_types.array_of_signed_16'( to_signed(4,16)
-                                                                                                    , to_signed(4,16)
-                                                                                                    , to_signed(3,16)
-                                                                                                    , to_signed(12,16) )
-                                                             , brain_infer_types.array_of_signed_16'( to_signed(6,16)
-                                                                                                    , to_signed(3,16)
-                                                                                                    , to_signed(4,16)
-                                                                                                    , to_signed(8,16) )
-                                                             , brain_infer_types.array_of_signed_16'( to_signed(0,16)
+  \c$vec\ <= brain_infer_types.array_of_array_of_4_signed_16'( brain_infer_types.array_of_signed_16'( to_signed(2,16)
+                                                                                                    , to_signed(2,16)
+                                                                                                    , to_signed(10,16)
+                                                                                                    , to_signed(2,16) )
+                                                             , brain_infer_types.array_of_signed_16'( to_signed(2,16)
                                                                                                     , to_signed(5,16)
-                                                                                                    , to_signed(4,16)
-                                                                                                    , to_signed(6,16) ) );
+                                                                                                    , to_signed(6,16)
+                                                                                                    , to_signed(7,16) )
+                                                             , brain_infer_types.array_of_signed_16'( to_signed(0,16)
+                                                                                                    , to_signed(2,16)
+                                                                                                    , to_signed(6,16)
+                                                                                                    , to_signed(10,16) ) );
 
   -- map begin
   r_map : for i_1 in \c$app_arg_0\'range generate
@@ -401,8 +401,8 @@ begin
   end generate;
   -- map end
 
-  \c$vec1_0\ <= brain_infer_types.array_of_signed_16'( to_signed(256,16)
-                                                     , to_signed(222,16) );
+  \c$vec1_0\ <= brain_infer_types.array_of_signed_16'( to_signed(255,16)
+                                                     , to_signed(220,16) );
 
   -- zipWith begin
   zipWith_1 : for i_3 in \c$app_arg_1\'range generate
@@ -451,12 +451,12 @@ begin
   end generate;
   -- zipWith end
 
-  \c$vec_0\ <= brain_infer_types.array_of_array_of_3_signed_16'( brain_infer_types.array_of_signed_16'( to_signed(4,16)
-                                                                                                      , to_signed(0,16)
-                                                                                                      , to_signed(-5,16) )
-                                                               , brain_infer_types.array_of_signed_16'( to_signed(-35,16)
-                                                                                                      , to_signed(-37,16)
-                                                                                                      , to_signed(-34,16) ) );
+  \c$vec_0\ <= brain_infer_types.array_of_array_of_3_signed_16'( brain_infer_types.array_of_signed_16'( to_signed(0,16)
+                                                                                                      , to_signed(2,16)
+                                                                                                      , to_signed(2,16) )
+                                                               , brain_infer_types.array_of_signed_16'( to_signed(-33,16)
+                                                                                                      , to_signed(-34,16)
+                                                                                                      , to_signed(-33,16) ) );
 
   -- map begin
   r_map_1 : for i_5 in \c$app_arg_2\'range generate
