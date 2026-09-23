@@ -86,19 +86,6 @@ layerForward inputs (biases, weights) =
   map relu $ zipWith (+) biases (map (dotP inputs) weights)
 
 -- ---------------------------------------------------------------------------
--- Two-layer network  [4 → 3 → 2]
--- ---------------------------------------------------------------------------
-
--- | Convenience alias for the demo network architecture from brain.hs.
-type Brain4_3_2 = (Layer 4 3, Layer 3 2)
-
--- | Full forward pass: input layer → hidden layer → output layer.
-forward :: Brain4_3_2 -> Vec 4 Weight -> Vec 2 Weight
-forward (l1, l2) input =
-  let hidden = layerForward input l1
-  in  layerForward hidden l2
-
--- ---------------------------------------------------------------------------
 -- Trained weights
 --
 -- Train.hs replaces the block below with fixed-point literals. Do not edit
@@ -106,10 +93,9 @@ forward (l1, l2) input =
 -- ---------------------------------------------------------------------------
 
 -- The Train executable replaces the block between these markers after each
--- training run. Keep the generated values as compile-time constants.
+-- training run. The block includes the architecture-specific type aliases,
+-- forward pass, trained constants, and topEntity signature.
 -- GENERATED_WEIGHTS_BEGIN
-trainedBrain :: Brain4_3_2
-trainedBrain = errorX "Run cabal run train to generate trainedBrain"
 -- GENERATED_WEIGHTS_END
 
 -- ---------------------------------------------------------------------------
@@ -127,10 +113,5 @@ trainedBrain = errorX "Run cabal run train to generate trainedBrain"
     , t_output = PortName "output"
     }) #-}
 
--- | Purely combinational inference core.
---
--- All four input neurons are evaluated in parallel; the two output values
--- are available within a single combinational delay (no clock needed for
--- this small network — add pipeline registers for higher clock frequencies).
-topEntity :: Vec 4 Weight -> Vec 2 Weight
-topEntity = BrainClash.forward trainedBrain
+-- The generated block above supplies the architecture-specific topEntity
+-- signature and forward pass.

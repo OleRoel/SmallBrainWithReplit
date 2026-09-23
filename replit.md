@@ -31,7 +31,12 @@ cabal exec -- sh -c './bin/clash --vhdl BrainClash.hs'
 ```
 
 `BrainClash.template.hs` is the hand-written source. `BrainClash.hs` is
-generated output and should not be edited manually.
+generated output and should not be edited manually. Pass layer sizes after
+`--` to generate another architecture, for example:
+
+```bash
+cabal run train -- 4 5 3 2
+```
 
 ## Clash HDL
 

@@ -13,14 +13,14 @@
         },
         {
             "name": "brain_infer.vhdl",
-            "sha256": "362fd1440235099994bbcd4429244be0b5493466735fb8d1c8539eb8f9999cca"
+            "sha256": "bc1bc93261bd5d5b3d342687187d1d62aa746a9cb1959a62c0f561b56a309302"
         }
     ],
     "flags": [
         20,
         20
     ],
-    "hash": "ebbe56218473033e3bcf4381ab75d5e28e2c8a16848952e381eac320b6aaefc0",
+    "hash": "6c00d4a76ede8fa626195bb1e3b2e42d9915c7da266b61fc5bde0fdc284bff4c",
     "top_component": {
         "name": "brain_infer",
         "ports_flat": [

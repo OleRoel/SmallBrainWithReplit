@@ -16,12 +16,14 @@ module BrainTrain
   , feed
   , learn
   , learnMany
+  , trainNetwork
   , trainDemo
   , writeBrainClash
   ) where
 
+import Control.Exception (evaluate)
 import Control.Monad (replicateM, zipWithM)
-import Data.List     (transpose)
+import Data.List     (intercalate, transpose)
 import System.Random (randomRIO)
 import LinAlg
 
@@ -83,9 +85,12 @@ randomMatrix m n = do
 -- e.g. @newBrain [784, 30, 10]@ builds two layers: 784→30 and 30→10.
 -- Biases start at 1, weights are small Gaussian random values.
 newBrain :: [Int] -> IO Brain
-newBrain sizes@(_:layerSizes) =
-  zip (map ones layerSizes) <$> zipWithM randomMatrix sizes layerSizes
-newBrain [] = pure []
+newBrain sizes@(_:layerSizes)
+  | length sizes < 2 = error "A brain needs an input size and at least one output size"
+  | any (<= 0) sizes = error "Brain layer sizes must all be positive"
+  | otherwise =
+      zip (map ones layerSizes) <$> zipWithM randomMatrix sizes layerSizes
+newBrain [] = error "A brain needs an input size and at least one output size"
 
 -- ---------------------------------------------------------------------------
 -- Forward pass
@@ -174,6 +179,8 @@ fixedScale :: Integer
 fixedScale = 256
 
 quantize :: Double -> Integer
+quantize value | isNaN value || isInfinite value =
+  error "Cannot export a non-finite weight"
 quantize value =
   let numerator = round (value * fromIntegral fixedScale)
    in if numerator < -32768 || numerator > 32767
@@ -207,15 +214,104 @@ clashLayer (bias, weights) =
     ++ "    , " ++ clashMatrix (transpose weights) ++ "\n"
     ++ "    )"
 
-trainedBinding :: Brain -> String
-trainedBinding [l1, l2] =
-  "trainedBrain :: Brain4_3_2\n"
-    ++ "trainedBrain =\n"
-    ++ "  ( " ++ clashLayer l1 ++ "\n"
-    ++ "  , " ++ clashLayer l2 ++ "\n"
+-- | Validate a trained network and return its input/output shape.
+networkShape :: Brain -> [Int]
+networkShape [] = error "Cannot generate Clash source for an empty brain"
+networkShape layers =
+  let layerShapes = map layerShape layers
+      inputs = map fst layerShapes
+      outputs = map snd layerShapes
+      shape = firstOf inputs : outputs
+   in if and (zipWith (==) (drop 1 inputs) (take (length outputs - 1) outputs))
+        then shape
+        else error $ "Adjacent brain layers do not match: " ++ show shape
+  where
+    firstOf (first:_) = first
+    firstOf [] = error "Cannot get the first dimension of an empty shape"
+
+    layerShape (bias, weights)
+      | null bias || null weights =
+          error "Clash generation requires non-empty layers"
+      | any ((/= length bias) . length) weights =
+          error "Clash generation requires rectangular weight matrices"
+      | otherwise = (length weights, length bias)
+
+architectureName :: [Int] -> String
+architectureName shape = "Brain" ++ intercalate "_" (map show shape)
+
+layerType :: Int -> Int -> String
+layerType inputSize outputSize =
+  "Layer " ++ show inputSize ++ " " ++ show outputSize
+
+tupleType :: [String] -> String
+tupleType [] = error "Cannot create an empty layer tuple"
+tupleType [one] = one
+tupleType (firstLayer:remaining) =
+  "(" ++ firstLayer ++ ", " ++ tupleType remaining ++ ")"
+
+tupleValue :: [String] -> String
+tupleValue [] = error "Cannot create an empty layer value"
+tupleValue [one] = one
+tupleValue (firstLayer:remaining) =
+  "( " ++ firstLayer ++ "\n"
+    ++ "  , " ++ tupleValue remaining ++ "\n"
     ++ "  )"
-trainedBinding _ =
-  error "BrainClash generation expects exactly two layers: [4, 3, 2]"
+
+forwardPattern :: [String] -> String
+forwardPattern [] = error "Cannot create a forward pattern without layers"
+forwardPattern [one] = one
+forwardPattern (firstLayer:remaining) =
+  "(" ++ firstLayer ++ ", " ++ forwardPattern remaining ++ ")"
+
+forwardBody :: Int -> String
+forwardBody layerCount
+  | layerCount <= 0 = error "Cannot create a forward body without layers"
+  | layerCount == 1 = "  layerForward input l1"
+  | otherwise =
+      "  let a1 = layerForward input l1\n"
+        ++ concatMap activationLine [2 .. layerCount - 1]
+        ++ "  in  layerForward a" ++ show (layerCount - 1) ++ " l"
+        ++ show layerCount
+  where
+    activationLine index =
+      "      a" ++ show index ++ " = layerForward a"
+        ++ show (index - 1) ++ " l" ++ show index ++ "\n"
+
+generatedNetwork :: Brain -> String
+generatedNetwork trained =
+  let shape = networkShape trained
+      inputSize = firstOf shape
+      outputSize = lastOf shape
+      layerTypes =
+        zipWith layerType (take (length shape - 1) shape) (drop 1 shape)
+      name = architectureName shape
+      layers = map clashLayer trained
+      forward =
+        "forward :: " ++ name ++ " -> Vec " ++ show inputSize
+          ++ " Weight -> Vec " ++ show outputSize ++ " Weight\n"
+          ++ "forward " ++ forwardPattern
+               ["l" ++ show index | index <- [1 .. length trained]]
+          ++ " input =\n"
+          ++ forwardBody (length trained)
+      trainedValue =
+        "trainedBrain :: " ++ name ++ "\n"
+          ++ "trainedBrain =\n"
+          ++ "  " ++ tupleValue layers
+      top =
+        "topEntity :: Vec " ++ show inputSize ++ " Weight -> Vec "
+          ++ show outputSize ++ " Weight\n"
+          ++ "topEntity = BrainClash.forward trainedBrain"
+   in "-- Generated architecture and weights. Do not edit this block.\n"
+        ++ "type " ++ name ++ " = " ++ tupleType layerTypes ++ "\n\n"
+        ++ forward ++ "\n\n"
+        ++ trainedValue ++ "\n\n"
+        ++ top
+  where
+    firstOf (first:_) = first
+    firstOf [] = error "Generated brain shape is empty"
+
+    lastOf [] = error "Generated brain shape is empty"
+    lastOf values = firstOf (reverse values)
 
 generatedBegin :: String
 generatedBegin = "-- GENERATED_WEIGHTS_BEGIN"
@@ -243,13 +339,26 @@ replaceGeneratedBlock source replacement =
 writeBrainClash :: FilePath -> FilePath -> Brain -> IO ()
 writeBrainClash templatePath outputPath trained = do
   template <- readFile templatePath
-  writeFile outputPath (replaceGeneratedBlock template (trainedBinding trained))
+  let source = replaceGeneratedBlock template (generatedNetwork trained)
+  -- Validate the complete output before opening the existing file for writing.
+  _ <- evaluate (length source)
+  writeFile outputPath source
 
--- | Create the demo network and train it for 100 iterations.
-trainDemo :: IO (Vector, Vector, Brain, Brain)
-trainDemo = do
-  initial <- newBrain [4, 3, 2]
-  let input = [1, 2, 3, 4]
-      target = [1, 0]
+-- | Create and train a network for the single-sample demo.
+trainNetwork :: [Int] -> IO (Vector, Vector, Brain, Brain)
+trainNetwork sizes = do
+  initial <- newBrain sizes
+  let inputSize = case sizes of
+        size:_ -> size
+        [] -> error "A brain needs an input size"
+      outputSize = case reverse sizes of
+        output:_ -> output
+        [] -> error "A brain needs an output size"
+      input = [1 .. fromIntegral inputSize]
+      target = 1 : replicate (outputSize - 1) 0
       trained = iterate (learn input target) initial !! 100
   pure (input, target, initial, trained)
+
+-- | Create the default 4 → 3 → 2 demo network.
+trainDemo :: IO (Vector, Vector, Brain, Brain)
+trainDemo = trainNetwork [4, 3, 2]

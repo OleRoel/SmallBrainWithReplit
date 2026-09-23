@@ -33,6 +33,15 @@ The command reads [`BrainClash.template.hs`](./BrainClash.template.hs), replaces
 the generated-weight block, and writes [`BrainClash.hs`](./BrainClash.hs).
 Treat `BrainClash.hs` as generated output; edit the template instead.
 
+The default architecture is `4 → 3 → 2`. Pass another architecture as
+positive layer sizes to the training executable:
+
+```bash
+cabal run train -- 4 5 3 2
+```
+
+This generates a `4 → 5 → 3 → 2` Clash network.
+
 Compile the Clash library and synthesize VHDL with:
 
 ```bash

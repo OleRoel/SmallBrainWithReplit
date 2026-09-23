@@ -86,19 +86,6 @@ layerForward inputs (biases, weights) =
   map relu $ zipWith (+) biases (map (dotP inputs) weights)
 
 -- ---------------------------------------------------------------------------
--- Two-layer network  [4 → 3 → 2]
--- ---------------------------------------------------------------------------
-
--- | Convenience alias for the demo network architecture from brain.hs.
-type Brain4_3_2 = (Layer 4 3, Layer 3 2)
-
--- | Full forward pass: input layer → hidden layer → output layer.
-forward :: Brain4_3_2 -> Vec 4 Weight -> Vec 2 Weight
-forward (l1, l2) input =
-  let hidden = layerForward input l1
-  in  layerForward hidden l2
-
--- ---------------------------------------------------------------------------
 -- Trained weights
 --
 -- Train.hs replaces the block below with fixed-point literals. Do not edit
@@ -106,22 +93,34 @@ forward (l1, l2) input =
 -- ---------------------------------------------------------------------------
 
 -- The Train executable replaces the block between these markers after each
--- training run. Keep the generated values as compile-time constants.
+-- training run. The block includes the architecture-specific type aliases,
+-- forward pass, trained constants, and topEntity signature.
 -- GENERATED_WEIGHTS_BEGIN
+-- Generated architecture and weights. Do not edit this block.
+type Brain4_3_2 = (Layer 4 3, Layer 3 2)
+
+forward :: Brain4_3_2 -> Vec 4 Weight -> Vec 2 Weight
+forward (l1, l2) input =
+  let a1 = layerForward input l1
+  in  layerForward a1 l2
+
 trainedBrain :: Brain4_3_2
 trainedBrain =
   ( ( ($$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> $$(fLit (1.0078125)) :> Nil)
-    , ($$(fLit (-3.90625e-3)) :> $$(fLit (1.171875e-2)) :> $$(fLit (2.734375e-2)) :> $$(fLit (3.515625e-2)) :> Nil)
-      :> ($$(fLit (-3.90625e-3)) :> $$(fLit (1.5625e-2)) :> $$(fLit (1.953125e-2)) :> $$(fLit (5.46875e-2)) :> Nil)
-      :> ($$(fLit (1.953125e-2)) :> $$(fLit (1.171875e-2)) :> $$(fLit (3.515625e-2)) :> $$(fLit (3.515625e-2)) :> Nil)
+    , ($$(fLit (1.5625e-2)) :> $$(fLit (1.5625e-2)) :> $$(fLit (1.171875e-2)) :> $$(fLit (4.6875e-2)) :> Nil)
+      :> ($$(fLit (2.34375e-2)) :> $$(fLit (1.171875e-2)) :> $$(fLit (1.5625e-2)) :> $$(fLit (3.125e-2)) :> Nil)
+      :> ($$(fLit (0.0)) :> $$(fLit (1.953125e-2)) :> $$(fLit (1.5625e-2)) :> $$(fLit (2.34375e-2)) :> Nil)
       :> Nil
     )
-  , ( ($$(fLit (1.0)) :> $$(fLit (0.875)) :> Nil)
-    , ($$(fLit (-7.8125e-3)) :> $$(fLit (1.953125e-2)) :> $$(fLit (-1.171875e-2)) :> Nil)
-      :> ($$(fLit (-0.140625)) :> $$(fLit (-0.14453125)) :> $$(fLit (-0.1484375)) :> Nil)
+  , ( ($$(fLit (1.0)) :> $$(fLit (0.8671875)) :> Nil)
+    , ($$(fLit (1.5625e-2)) :> $$(fLit (0.0)) :> $$(fLit (-1.953125e-2)) :> Nil)
+      :> ($$(fLit (-0.13671875)) :> $$(fLit (-0.14453125)) :> $$(fLit (-0.1328125)) :> Nil)
       :> Nil
     )
   )
+
+topEntity :: Vec 4 Weight -> Vec 2 Weight
+topEntity = BrainClash.forward trainedBrain
 -- GENERATED_WEIGHTS_END
 
 -- ---------------------------------------------------------------------------
@@ -139,10 +138,5 @@ trainedBrain =
     , t_output = PortName "output"
     }) #-}
 
--- | Purely combinational inference core.
---
--- All four input neurons are evaluated in parallel; the two output values
--- are available within a single combinational delay (no clock needed for
--- this small network — add pipeline registers for higher clock frequencies).
-topEntity :: Vec 4 Weight -> Vec 2 Weight
-topEntity = BrainClash.forward trainedBrain
+-- The generated block above supplies the architecture-specific topEntity
+-- signature and forward pass.
