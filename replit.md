@@ -15,6 +15,15 @@ cabal run
 cabal build
 ```
 
+## Clash HDL
+
+The Clash compiler and interactive shell are installed in `bin/`:
+
+```bash
+./bin/clash --version
+./bin/clashi --version
+```
+
 ## Project files
 
 - `brain.hs` — neural-network implementation and demo

@@ -21,6 +21,15 @@ iterations, and prints the output before and after training.
 cabal build
 ```
 
+## Clash HDL
+
+Clash 1.10.2 is installed in `bin/`.
+
+```bash
+./bin/clash --version
+./bin/clashi --version
+```
+
 The main source is [`brain.hs`](./brain.hs). Its functions can also be reused
 from another Haskell module by moving the network definitions into a library
 module.
