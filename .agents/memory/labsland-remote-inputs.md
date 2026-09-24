@@ -12,6 +12,9 @@ LabsLand access and supplied its generic LL_STD_1 interface diagram and adaptati
 guide. The subsequently supplied lab QSF confirmed that virtual controls use
 GPIO-connected pins rather than physical switch/button pins. Treat the observed
 input failure as a mapping issue, not evidence that the trained network is wrong.
+On 2026-09-24, the user confirmed that the corrected LabsLand SOF works on the
+remote board with the trained network unchanged. This is user-reported hardware
+confirmation, not just a successful local compile; preserve the distinction.
 
 **How to apply:** Distinguish a source upload compiled by LabsLand's fixed
 constraints from a locally compiled physical-board SOF. The generic diagram
