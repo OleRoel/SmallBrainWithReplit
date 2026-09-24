@@ -14,3 +14,17 @@ mtime_ms = 1790256714831
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/6513fad9-2f36-48d5-ae53-08d7f3406127/c3b39a78-ef6f-4310-8b12-68d8e0809f1c"
 storage_version_token = "1790256721259558"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "bN8xqdbjgQyL_cMjf-0Pf"
+uri = "file://deliverables/de1-soc-switch-led.tar.xz"
+type = "unspecified"
+title = "DE1-SoC programming package — tar.xz"
+description = "Contains the .sof programming file, reports, checksum, and instructions. All files verified identical to the ZIP package."
+logical_id = "559a8919-ea2c-479f-93d4-5604c2deb3b6"
+content_hash = "sha256:e186136f1388a8eade0358e4696f06dbfa717227bbd52cabf384e157a3622947"
+size = 58320
+mtime_ms = 1790257128030
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/559a8919-ea2c-479f-93d4-5604c2deb3b6/47f3cdb9-7ed3-45b8-8109-06552b85cede"
+storage_version_token = "1790257134233292"
+content_type = "application/octet-stream"
