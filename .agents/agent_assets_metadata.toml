@@ -70,3 +70,17 @@ mtime_ms = 1790259457421
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/ff46660b-12fc-4db2-b760-543f8400b624/3b6001e3-4ae5-4e24-a2a6-099247b5f968"
 storage_version_token = "1790259467386802"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "lHbEnmLj-NB17HA1qPGxY"
+uri = "file://deliverables/labsland-switch-led.tar.xz"
+type = "unspecified"
+title = "LabsLand network and diagnostic sources"
+description = "Two self-contained VHDL files and instructions for LabsLand compilation. The trained Clash network is unchanged; virtual switch 9 controls reset."
+logical_id = "2e482953-6e27-4386-a81f-c6804646a1b5"
+content_hash = "sha256:bd887840c9f2459f8ed70a293b734abcb685388cb1c1acaeb7f2b5da4d82614a"
+size = 7224
+mtime_ms = 1790263942100
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/2e482953-6e27-4386-a81f-c6804646a1b5/0b317235-cac3-438d-8348-ad14bdec7874"
+storage_version_token = "1790263952423924"
+content_type = "application/octet-stream"
