@@ -49,6 +49,17 @@ The Clash compiler and interactive shell are installed in `bin/`:
 
 ## Project files
 
+The current `main` branch focuses on four switches and two LED outputs:
+SW0/SW2 → LED0, SW1/SW3 → LED1. Train via `cabal run train -- --switch-leds`
+and validate via `cabal test switch-led-tests`.
+Keep generated `SwitchBrain.hs` separate from generic `BrainClash.hs`
+architecture experiments so they cannot break the fixed board interface.
+The board target is DE1-SoC (not the original DE1). `DE1SoC.hs` adapts reset
+and LED width; `boards/de1-soc` contains manual-verified pins and a Quartus
+project generator. Quartus timing closure and physical board operation are
+not yet verified. See `docs/switch-led-demo.md` and `boards/de1-soc/README.md`.
+Servo experiments remain preserved on the `servo` branch.
+
 - `BrainTrain.hs` — reusable training and Clash-source generation logic
 - `brain.hs` — training demo
 - `Train.hs` — trains and generates `BrainClash.hs`

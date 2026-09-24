@@ -11,6 +11,9 @@ RUN cabal update \
 COPY brain.cabal cabal.project ./
 COPY brain.hs Train.hs BrainTrain.hs LinAlg.hs ./
 COPY BrainClash.hs BrainClash.template.hs ./
+COPY SwitchTraining.hs SwitchBrain.hs SwitchLED.hs ./
+COPY DE1SoC.hs ./
+COPY tests/ tests/
 
 # Match the Clash compiler's prelude version when resolving project packages.
 RUN printf 'constraints: clash-prelude == 1.10.2\n' > cabal.project.local \

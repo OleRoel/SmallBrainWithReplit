@@ -1,0 +1,73 @@
+{
+    "components": [
+        "brain_infer"
+    ],
+    "dependencies": {
+        "transitive": []
+    },
+    "domains": {
+        "Board50": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 20000,
+            "reset_kind": "Synchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "IntelSystem": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Asynchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "System": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Asynchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "XilinxSystem": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Synchronous",
+            "reset_polarity": "ActiveHigh"
+        }
+    },
+    "files": [
+        {
+            "name": "brain_infer_types.vhdl",
+            "sha256": "b29803f5c180718aa8b7e6859d347821abb82b2e7cd04762dd49bc7a96f4ae02"
+        },
+        {
+            "name": "brain_infer.vhdl",
+            "sha256": "b2eb0226db75d3f74e1f060c692338d507af2688433523e1975bbe6663b579ad"
+        }
+    ],
+    "flags": [
+        20,
+        20
+    ],
+    "hash": "3f5d2da39bcb3d55720cfc44126b1786e65039574bff1bf657e510c73aca38a0",
+    "top_component": {
+        "name": "brain_infer",
+        "ports_flat": [
+            {
+                "direction": "in",
+                "is_clock": false,
+                "name": "input",
+                "type_name": "std_logic_vector(63 downto 0)",
+                "width": 64
+            },
+            {
+                "direction": "out",
+                "is_clock": false,
+                "name": "output",
+                "type_name": "std_logic_vector(31 downto 0)",
+                "width": 32
+            }
+        ]
+    },
+    "version": "unstable"
+}

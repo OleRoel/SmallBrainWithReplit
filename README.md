@@ -21,6 +21,28 @@ iterations, and prints the output before and after training.
 cabal build
 ```
 
+## DE1-SoC switch-to-LED demo
+
+The **4 → 3 → 2** network now has a dedicated training mode for all 16 switch
+combinations:
+
+- **SW0 or SW2 → LED0**
+- **SW1 or SW3 → LED1**
+- Other LEDs remain off.
+
+```bash
+cabal run train -- --switch-leds
+cabal test switch-led-tests --test-show-details=direct
+cabal exec -- sh -c './bin/clash --vhdl DE1SoC.hs -fclash-hdldir vhdl-de1-soc'
+```
+
+`SwitchBrain.hs` holds this demo's generated weights; `SwitchLED.hs` handles
+input synchronization, 10 ms debouncing, inference, and LED thresholding.
+See [the switch/LED guide](docs/switch-led-demo.md) for the full truth table
+and [DE1-SoC Quartus setup](boards/de1-soc/README.md). `DE1SoC.hs` adds KEY0
+reset handling and the ten-LED board interface. Servo work remains on the
+`servo` branch.
+
 ## Train and generate Clash
 
 Run a training pass and inject its quantized weights into `BrainClash.hs`:

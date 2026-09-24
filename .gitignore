@@ -8,6 +8,13 @@ out-tsc
 .stack-work/
 dist-newstyle/
 .cabal-sandbox/
+vhdl-de1-soc/
+boards/de1-soc/db/
+boards/de1-soc/incremental_db/
+boards/de1-soc/output_files/
+boards/de1-soc/*.qpf
+boards/de1-soc/*.qsf
+boards/de1-soc/*.qws
 cabal.project.local
 cabal.project.local~
 *.cabal.sandbox.config

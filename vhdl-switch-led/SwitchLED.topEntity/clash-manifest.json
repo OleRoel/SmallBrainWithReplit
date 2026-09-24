@@ -1,0 +1,93 @@
+{
+    "components": [
+        "switch_led"
+    ],
+    "dependencies": {
+        "transitive": []
+    },
+    "domains": {
+        "Board50": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 20000,
+            "reset_kind": "Synchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "IntelSystem": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Asynchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "System": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Asynchronous",
+            "reset_polarity": "ActiveHigh"
+        },
+        "XilinxSystem": {
+            "active_edge": "Rising",
+            "init_behavior": "Defined",
+            "period": 10000,
+            "reset_kind": "Synchronous",
+            "reset_polarity": "ActiveHigh"
+        }
+    },
+    "files": [
+        {
+            "name": "switch_led.sdc",
+            "sha256": "f20489dae88a4b72e9319bd47588567b35489e8f4ed9b26351b1eeafa4335f43"
+        },
+        {
+            "name": "switch_led_types.vhdl",
+            "sha256": "641ca9004c9f40130963ab30828c93e83b0fbbe3731f54c1b5ff68031e624bed"
+        },
+        {
+            "name": "switch_led.vhdl",
+            "sha256": "368f685d89bae0f0d784ad32c61cdf9e01cbd5394e025eb410346004ed09abdb"
+        }
+    ],
+    "flags": [
+        20,
+        20
+    ],
+    "hash": "51f93cc5439e51487eea47bfdb43712078b974809778a75574f26a350d9033b3",
+    "top_component": {
+        "name": "switch_led",
+        "ports_flat": [
+            {
+                "direction": "in",
+                "domain": "Board50",
+                "is_clock": true,
+                "name": "CLOCK_50",
+                "type_name": "CLOCK_50.switch_led_types.clk_Board50",
+                "width": 1
+            },
+            {
+                "direction": "in",
+                "domain": "Board50",
+                "is_clock": false,
+                "name": "RESET",
+                "type_name": "RESET.switch_led_types.rst_Board50",
+                "width": 1
+            },
+            {
+                "direction": "in",
+                "is_clock": false,
+                "name": "SW",
+                "type_name": "std_logic_vector(3 downto 0)",
+                "width": 4
+            },
+            {
+                "direction": "out",
+                "is_clock": false,
+                "name": "LED",
+                "type_name": "std_logic_vector(7 downto 0)",
+                "width": 8
+            }
+        ]
+    },
+    "version": "unstable"
+}

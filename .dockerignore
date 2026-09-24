@@ -11,3 +11,9 @@
 !LinAlg.hs
 !BrainClash.hs
 !BrainClash.template.hs
+!SwitchTraining.hs
+!SwitchBrain.hs
+!SwitchLED.hs
+!DE1SoC.hs
+!tests/
+!tests/SwitchLEDTests.hs

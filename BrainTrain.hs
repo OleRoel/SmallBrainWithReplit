@@ -19,6 +19,7 @@ module BrainTrain
   , trainNetwork
   , trainDemo
   , writeBrainClash
+  , writeSwitchBrain
   ) where
 
 import Control.Exception (evaluate)
@@ -277,8 +278,8 @@ forwardBody layerCount
       "      a" ++ show index ++ " = layerForward a"
         ++ show (index - 1) ++ " l" ++ show index ++ "\n"
 
-generatedNetwork :: Brain -> String
-generatedNetwork trained =
+generatedNetwork :: String -> Brain -> String
+generatedNetwork moduleName trained =
   let shape = networkShape trained
       inputSize = firstOf shape
       outputSize = lastOf shape
@@ -300,7 +301,7 @@ generatedNetwork trained =
       top =
         "topEntity :: Vec " ++ show inputSize ++ " Weight -> Vec "
           ++ show outputSize ++ " Weight\n"
-          ++ "topEntity = BrainClash.forward trainedBrain"
+          ++ "topEntity = " ++ moduleName ++ ".forward trainedBrain"
    in "-- Generated architecture and weights. Do not edit this block.\n"
         ++ "type " ++ name ++ " = " ++ tupleType layerTypes ++ "\n\n"
         ++ forward ++ "\n\n"
@@ -337,9 +338,19 @@ replaceGeneratedBlock source replacement =
 
 -- | Generate a complete BrainClash.hs from the hand-written template.
 writeBrainClash :: FilePath -> FilePath -> Brain -> IO ()
-writeBrainClash templatePath outputPath trained = do
+writeBrainClash = writeModule "BrainClash"
+
+-- | Keep the board demo independent of other architecture experiments.
+writeSwitchBrain :: FilePath -> FilePath -> Brain -> IO ()
+writeSwitchBrain = writeModule "SwitchBrain"
+
+writeModule :: String -> FilePath -> FilePath -> Brain -> IO ()
+writeModule moduleName templatePath outputPath trained = do
   template <- readFile templatePath
-  let source = replaceGeneratedBlock template (generatedNetwork trained)
+  let renamed = unlines $ map renameLine (lines template)
+      renameLine "module BrainClash where" = "module " ++ moduleName ++ " where"
+      renameLine line = line
+      source = replaceGeneratedBlock renamed (generatedNetwork moduleName trained)
   -- Validate the complete output before opening the existing file for writing.
   _ <- evaluate (length source)
   writeFile outputPath source

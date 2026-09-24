@@ -3,10 +3,17 @@ module Main where
 import BrainTrain
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
+import SwitchTraining (trainSwitches)
 
 main :: IO ()
 main = do
   arguments <- getArgs
+  case arguments of
+    ["--switch-leds"] -> trainSwitches
+    _ -> trainDemoArguments arguments
+
+trainDemoArguments :: [String] -> IO ()
+trainDemoArguments arguments = do
   sizes <- either (ioError . userError) pure (parseSizes arguments)
   (input, target, initial, trained) <- trainNetwork sizes
   writeBrainClash "BrainClash.template.hs" "BrainClash.hs" trained
