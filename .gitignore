@@ -9,6 +9,7 @@ out-tsc
 dist-newstyle/
 .cabal-sandbox/
 vhdl-de1-soc/
+vhdl-de1-soc-diagnostic/
 boards/de1-soc/db/
 boards/de1-soc/incremental_db/
 boards/de1-soc/output_files/

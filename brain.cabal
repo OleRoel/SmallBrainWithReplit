@@ -4,7 +4,7 @@ version: 0.1.0.0
 build-type: Simple
 
 library brain-clash
-  exposed-modules:    BrainClash, SwitchBrain, SwitchLED, DE1SoC
+  exposed-modules:    BrainClash, SwitchBrain, SwitchLED, DE1SoC, DE1SoCDiagnostic
   hs-source-dirs:     .
   default-language:   Haskell2010
   default-extensions:

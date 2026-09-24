@@ -13,6 +13,7 @@ COPY brain.hs Train.hs BrainTrain.hs LinAlg.hs ./
 COPY BrainClash.hs BrainClash.template.hs ./
 COPY SwitchTraining.hs SwitchBrain.hs SwitchLED.hs ./
 COPY DE1SoC.hs ./
+COPY DE1SoCDiagnostic.hs ./
 COPY tests/ tests/
 
 # Match the Clash compiler's prelude version when resolving project packages.

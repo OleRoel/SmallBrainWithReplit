@@ -15,5 +15,6 @@
 !SwitchBrain.hs
 !SwitchLED.hs
 !DE1SoC.hs
+!DE1SoCDiagnostic.hs
 !tests/
 !tests/SwitchLEDTests.hs

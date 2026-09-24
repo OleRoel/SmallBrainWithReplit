@@ -42,3 +42,31 @@ mtime_ms = 1790256144526
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/bc194843-850e-4923-83dc-3acb31aa2763/52accc84-996a-4b39-8dc2-93ffa77e00d2"
 storage_version_token = "1790258025814956"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "L0hhfUUMA5FpLg4hjivzr"
+uri = "file://boards/de1-soc/output_files/de1_soc_diagnostic.sof"
+type = "unspecified"
+title = "DE1-SoC diagnostic — standalone .sof"
+description = "Shows configuration, clock heartbeat, switch inputs, reset state, and network outputs separately. Timing verified at 50 MHz; load this file for hardware diagnosis."
+logical_id = "f01d08dc-3914-4d1a-aaf2-965955da6595"
+content_hash = "sha256:55c5770e50a8338db5385a6086a68a4e477154feed034fd236048caccb77e892"
+size = 6690390
+mtime_ms = 1790259383061
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/f01d08dc-3914-4d1a-aaf2-965955da6595/514a0db0-048f-4384-b239-ade992ec3bc9"
+storage_version_token = "1790259466859852"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "G3qoEjwF0AcomrnJWVH4K"
+uri = "file://deliverables/de1-soc-diagnostic.tar.xz"
+type = "unspecified"
+title = "Diagnostic package (.tar.xz)"
+description = "The same diagnostic .sof, LED interpretation guide, checksum, and Quartus reports."
+logical_id = "ff46660b-12fc-4db2-b760-543f8400b624"
+content_hash = "sha256:f3845781335806178f5624e1764c44967754df32e8c5e9dbea5c9636177f16a2"
+size = 56804
+mtime_ms = 1790259457421
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/ff46660b-12fc-4db2-b760-543f8400b624/3b6001e3-4ae5-4e24-a2a6-099247b5f968"
+storage_version_token = "1790259467386802"
+content_type = "application/octet-stream"

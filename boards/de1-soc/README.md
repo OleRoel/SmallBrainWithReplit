@@ -1,5 +1,9 @@
 # DE1-SoC switch-to-LED network
 
+If switches appear unresponsive, use the separate
+[diagnostic image and LED guide](DIAGNOSTIC.md) to distinguish configuration,
+clock, input wiring, and reset problems.
+
 Target: Terasic **DE1-SoC**, Cyclone V **5CSEMA5F31C6** (device marking may
 include an `N` suffix). This is not the original DE1 or the DE10-Nano.
 

@@ -5,6 +5,7 @@ module Main where
 import qualified Clash.Prelude as C
 import qualified SwitchBrain as Brain
 import qualified DE1SoC
+import qualified DE1SoCDiagnostic as Diagnostic
 import SwitchLED
 import Control.Monad (forM_, unless)
 import Data.Bits (testBit, (.|.))
@@ -16,6 +17,23 @@ check label ok = do
 
 main :: IO ()
 main = do
+  check "diagnostic heartbeat toggles exactly at 25 million clocks"
+    (Diagnostic.heartbeatStep (24999998, False) == (24999999, False)
+      && Diagnostic.heartbeatStep (24999999, False) == (0, True)
+      && Diagnostic.heartbeatStep (24999999, True) == (0, False))
+  forM_ [0..15 :: Int] $ \bits -> do
+    let switches = fromIntegral bits :: C.BitVector 4
+        waveform = C.sampleN @Board50 8 $
+          Diagnostic.topEntity C.clockGen (pure False) (pure switches)
+    check ("diagnostic switch mirror works while KEY0 held: " ++ show bits)
+      (all (== (544 + fromIntegral bits)) (drop 3 waveform))
+  let diagnostics = C.sampleN @Board50 500020 $
+        Diagnostic.topEntity C.clockGen (pure True) (pure 15)
+  check "diagnostic separates input mirror, released key, reset and network LEDs"
+    (all (==735) (drop 500010 diagnostics))
+  check "diagnostic heartbeat and network-output LED bit placement"
+    (Diagnostic.diagnosticLEDs True True False 5 1 == 853
+      && Diagnostic.diagnosticLEDs False False True 10 2 == 682)
   let patterns = map fromIntegral [0..15 :: Int] :: [C.BitVector 4]
       pipeline = C.sampleN @Board50 18 $
         C.withClockResetEnable C.clockGen (C.unsafeFromActiveHigh (pure False)) C.enableGen $
