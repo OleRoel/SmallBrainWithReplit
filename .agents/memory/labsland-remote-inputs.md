@@ -9,12 +9,14 @@ operation of the physical board switches/buttons.
 **Why:** A diagnostic heartbeat worked while physical switch inputs stayed low
 and KEY0 stayed released despite web control changes. The user then confirmed
 LabsLand access and supplied its generic LL_STD_1 interface diagram and adaptation
-guide. This points to a virtual-input mapping mismatch, not established failure
-of the trained network. The exact lab package-pin mapping was not supplied.
+guide. The subsequently supplied lab QSF confirmed that virtual controls use
+GPIO-connected pins rather than physical switch/button pins. Treat the observed
+input failure as a mapping issue, not evidence that the trained network is wrong.
 
 **How to apply:** Distinguish a source upload compiled by LabsLand's fixed
 constraints from a locally compiled physical-board SOF. The generic diagram
 provides logical port names, not package-pin numbers, and is not proof that
-every selectable LabsLand lab uses the same interface. Obtain the selected
-lab's constraints before building a standalone remote-lab SOF. Do not claim
+every selectable LabsLand lab uses the same interface. The selected lab's
+constraints are now available in the project; use them for remote-lab SOFs
+rather than requesting the same diagram again. Do not claim
 remote hardware success based on local elaboration or timing checks alone.
