@@ -28,3 +28,17 @@ mtime_ms = 1790257128030
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/559a8919-ea2c-479f-93d4-5604c2deb3b6/47f3cdb9-7ed3-45b8-8109-06552b85cede"
 storage_version_token = "1790257134233292"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "It_3_k5TUO94LmAcyt4Mo"
+uri = "file://boards/de1-soc/output_files/de1_soc.sof"
+type = "unspecified"
+title = "DE1-SoC FPGA programming file (.sof)"
+description = "Standalone programming file, identical to the archived version. Target: DE1-SoC 5CSEMA5F31C6. Timing verified at 50 MHz; physical board testing remains."
+logical_id = "bc194843-850e-4923-83dc-3acb31aa2763"
+content_hash = "sha256:7accc109b9116bf87b552f1a389c329bc229e6c9e9912262fc2c322eb1c17c5b"
+size = 6690357
+mtime_ms = 1790256144526
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/bc194843-850e-4923-83dc-3acb31aa2763/52accc84-996a-4b39-8dc2-93ffa77e00d2"
+storage_version_token = "1790258025814956"
+content_type = "application/octet-stream"
