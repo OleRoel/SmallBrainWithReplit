@@ -23,6 +23,7 @@ cabal.project.local~
 
 # dependencies
 node_modules
+/quartus/
 
 # IDEs and editors
 /.idea

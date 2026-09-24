@@ -37,7 +37,22 @@ The checked-in `SwitchBrain.hs` already contains trained weights. Retraining is
 optional: `cabal run train -- --switch-leds`, followed by the tests above.
 In the Docker image use `clash` from PATH instead of `./bin/clash`.
 
+If a restored workspace retains the Clash executable but loses its Cabal
+data files, HDL generation can fail with missing BlackBox definitions.
+Restore the matching primitive definitions without rebuilding the compiler:
+
+```sh
+cabal get clash-lib-1.10.2 --destdir=.local/tool-sources
+cabal exec -- sh -c './bin/clash --vhdl DE1SoC.hs -i.local/tool-sources/clash-lib-1.10.2/prims/common -i.local/tool-sources/clash-lib-1.10.2/prims/vhdl -fclash-hdldir vhdl-de1-soc'
+```
+
+Skip `cabal get` if that source directory already exists.
+
 ## 2. Create the Quartus project locally
+
+Quartus Lite 25.1 with Cyclone V support is also installed in this workspace
+under `quartus/`. Its command-line entry point, from the repository root, is
+`./quartus/quartus/bin/quartus_sh`. The installation is excluded from Git.
 
 Install a Quartus edition/version that supports Cyclone V, including its device
 support package. Copy the project **including `vhdl-de1-soc`** to that machine.
@@ -74,6 +89,25 @@ After programming, press and release KEY0. Try SW0, SW1, SW2, and SW3
 individually and together; LEDR0/1 should follow the mapping after about 10 ms.
 Keep any servo/external GPIO wiring disconnected.
 
-**Quartus compilation, timing closure, and physical board operation have not
-been verified in this workspace.** The provided Tcl/SDC files are a starting
-project configuration to validate locally, not a prebuilt programming image.
+## Verified build (September 24, 2026)
+
+Quartus Lite 25.1std.0 build 1129 successfully compiled the design for
+5CSEMA5F31C6. `output_files/de1_soc.sof` is the volatile FPGA programming image.
+The first unpipelined build failed timing; a hidden-layer register now splits
+inference into two clock cycles without changing trained weights or arithmetic.
+All 28 simulation checks pass, including streamed comparison of all 16 patterns.
+
+- Worst setup slack: **+1.784 ns** at 50 MHz.
+- Worst hold slack: **+0.243 ns**.
+- Setup/hold are fully constrained; all reported timing corners pass.
+- Resources: 306 ALMs, 85 registers, 18 DSP blocks.
+- Five two-stage synchronizers are recognized. Numerical MTBF was not calculated
+  because synchronizers were auto-detected rather than explicitly designated.
+- Remaining compilation warnings concern deliberately constant LEDR2–9,
+  unavailable subscription-only LogicLock, and default LED drive strength/slew.
+  No timing-analysis warnings remain.
+
+**Physical board operation has not been verified.** Confirm the device and board
+revision, and use volatile `.sof` programming before considering flash storage.
+Quartus can report successful compilation even with negative timing slack:
+always inspect timing reports after future changes or retraining.

@@ -36,12 +36,28 @@ switchInputs switches =
 
 -- Actual neural-network inference: no Boolean OR shortcut in the hardware.
 networkLEDs :: BitVector 4 -> BitVector 8
-networkLEDs switches =
-  let outputs = Brain.topEntity (switchInputs switches)
-      threshold = $$(fLit (0.5)) :: Brain.Weight
+networkLEDs = outputLEDs . Brain.topEntity . switchInputs
+
+outputLEDs :: Vec 2 Brain.Weight -> BitVector 8
+outputLEDs outputs =
+  let threshold = $$(fLit (0.5)) :: Brain.Weight
       led0 = outputs !! (0 :: Index 2) >= threshold
       led1 = outputs !! (1 :: Index 2) >= threshold
   in (if led0 then 1 else 0) .|. (if led1 then 2 else 0)
+
+-- A register at the hidden-layer boundary splits the trained arithmetic into
+-- two cycles. Initialize to the zero-input activation to avoid startup flashes.
+networkCircuit
+  :: HiddenClockResetEnable Board50
+  => Signal Board50 (BitVector 4)
+  -> Signal Board50 (BitVector 8)
+networkCircuit switches =
+  let (firstLayer, secondLayer) = Brain.trainedBrain
+      hiddenAtZero = Brain.layerForward (repeat 0) firstLayer
+      hidden = register hiddenAtZero
+        ((\bits -> Brain.layerForward (switchInputs bits) firstLayer) <$> switches)
+      outputs = (\activation -> Brain.layerForward activation secondLayer) <$> hidden
+  in register 0 (outputLEDs <$> outputs)
 
 boardCircuit
   :: HiddenClockResetEnable Board50
@@ -50,7 +66,7 @@ boardCircuit
 boardCircuit switches =
   let synchronized = register 0 (register 0 switches)
       stable = mealy debounceStep (0, 0, 0) synchronized
-  in register 0 (networkLEDs <$> stable)
+  in networkCircuit stable
 
 {-# ANN topEntity
   (Synthesize

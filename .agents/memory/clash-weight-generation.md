@@ -24,3 +24,14 @@ the compiler is available in the current workspace.
 
 **How to apply:** Verify `bin/clash --version` before an HDL check. Reinstall
 when needed, and distinguish passing simulation from successful HDL generation.
+
+The copied executable also depends on primitive data files from `clash-lib`.
+
+**Why:** After workspace restoration the executable ran but HDL generation
+failed with missing BlackBox definitions because the original Cabal store's
+data files were gone. This was not a hardware-source error.
+
+**How to apply:** Restore the exact matching `clash-lib` source using `cabal get`
+and pass its `prims/common` and `prims/vhdl` directories with `-i` during VHDL
+generation. See the board README for the tested command. Do not rewrite working
+arithmetic to address a missing primitive-data installation.

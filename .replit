@@ -2,4 +2,4 @@ modules = ["haskell-ghc9.10", "python-base-3.13"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["cabal-install"]
+packages = ["cabal-install", "glib"]

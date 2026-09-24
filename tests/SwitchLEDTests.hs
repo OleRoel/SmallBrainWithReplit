@@ -16,6 +16,12 @@ check label ok = do
 
 main :: IO ()
 main = do
+  let patterns = map fromIntegral [0..15 :: Int] :: [C.BitVector 4]
+      pipeline = C.sampleN @Board50 18 $
+        C.withClockResetEnable C.clockGen (C.unsafeFromActiveHigh (pure False)) C.enableGen $
+          networkCircuit (C.fromList (patterns ++ repeat 0))
+  check "pipelined network matches all 16 fixed-point predictions with two-cycle latency"
+    (drop 2 pipeline == map networkLEDs patterns)
   forM_ [0..15 :: Int] $ \bits -> do
     let switches = fromIntegral bits :: C.BitVector 4
         expected = (if testBit bits 0 || testBit bits 2 then 1 else 0)

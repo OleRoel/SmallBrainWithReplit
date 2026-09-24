@@ -69,7 +69,7 @@ SW[3:0]
   -> two input register stages, clocked at 50 MHz
   -> whole-vector debounce: require 10 ms of stable switches
   -> switch bits converted to fixed-point 0 or 1
-  -> SwitchBrain.topEntity (trained inference)
+  -> trained first layer -> hidden-activation register -> trained second layer
   -> each output >= 0.5
   -> registered LED[7:0], with bits 7…2 zero
 ```
@@ -77,7 +77,7 @@ SW[3:0]
 There is no apply button. Moving switches updates the LEDs automatically after
 the input has settled for about 10 ms. The two input register stages provide
 the intended synchronizer structure; hardware metastability/timing analysis
-is still required in Quartus. Debouncing suppresses normal mechanical bounce
+was recognized in Quartus (five two-stage chains including reset). Debouncing suppresses normal mechanical bounce
 but cannot guarantee an atomic update when a person moves multiple switches
 far apart in time.
 
@@ -120,8 +120,9 @@ docker run --rm haskell-brain cabal test switch-led-tests
 
 ## What is not yet board-verified
 
-The DE1-SoC setup now supplies manufacturer-manual pin assignments, the 20 ns
-clock constraint, and a synchronized active-low button reset. Confirm the board
-revision, run Quartus compilation and timing analysis locally, and then program
-the FPGA. No ready-to-flash programming image or physical-board test result is
-claimed. The servo wiring is irrelevant to this demo; leave it disconnected.
+The DE1-SoC design has been compiled with Quartus Lite 25.1 and meets the 20 ns
+clock constraint in all analyzed timing corners. The network has a register
+between its two layers; fixed-point calculations and weights are unchanged.
+See the board README for the programming image and timing results.
+Confirm the board revision before programming. Physical-board operation has
+not been tested. The servo wiring is irrelevant; leave it disconnected.

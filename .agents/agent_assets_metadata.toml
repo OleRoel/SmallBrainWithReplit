@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "I5lkDjXHbTrS3Ra7HrihO"
+uri = "file://deliverables/de1-soc-switch-led.zip"
+type = "unspecified"
+title = "DE1-SoC FPGA programming package"
+description = "Quartus-generated .sof, timing and compilation reports, checksum, and programming instructions. Meets 50 MHz timing; physical board testing remains."
+logical_id = "6513fad9-2f36-48d5-ae53-08d7f3406127"
+content_hash = "sha256:6e496ebd9a61b4befcb5473e90107dc788f334c011f25d69095b46349461fe68"
+size = 229916
+mtime_ms = 1790256714831
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/6513fad9-2f36-48d5-ae53-08d7f3406127/c3b39a78-ef6f-4310-8b12-68d8e0809f1c"
+storage_version_token = "1790256721259558"
+content_type = "application/octet-stream"
