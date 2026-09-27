@@ -6,6 +6,8 @@ import qualified Clash.Prelude as C
 import qualified SwitchBrain as Brain
 import qualified DE1SoC
 import qualified DE1SoCDiagnostic as Diagnostic
+import qualified DE25Nano
+import qualified DE25NanoDiagnostic as DE25Diagnostic
 import SwitchLED
 import Control.Monad (forM_, unless)
 import Data.Bits (testBit, (.|.))
@@ -17,6 +19,17 @@ check label ok = do
 
 main :: IO ()
 main = do
+  check "DE25-Nano diagnostic LED placement"
+    (DE25Diagnostic.diagnosticLEDs True True False 5 == 213
+      && DE25Diagnostic.diagnosticLEDs False False True 10 == 170)
+  check "DE25-Nano diagnostic heartbeat toggles at 50 MHz half-second"
+    (DE25Diagnostic.heartbeatStep (24999999, False) == (0, True))
+  forM_ [0..15 :: Int] $ \bits -> do
+    let switches = fromIntegral bits :: C.BitVector 4
+        waveform = C.sampleN @Board50 8 $
+          DE25Diagnostic.topEntity C.clockGen (pure False) (pure switches)
+    check ("DE25-Nano diagnostic mirrors switches while reset held: " ++ show bits)
+      (all (== (160 + fromIntegral bits)) (drop 3 waveform))
   check "diagnostic heartbeat toggles exactly at 25 million clocks"
     (Diagnostic.heartbeatStep (24999998, False) == (24999999, False)
       && Diagnostic.heartbeatStep (24999999, False) == (0, True)
@@ -75,6 +88,11 @@ main = do
     (all (==0) (take 500000 boardWave))
   check "DE1-SoC drives LEDR0/1 with LEDR2..9 off"
     (all (==3) (drop 500010 boardWave))
+  let de25Wave = C.sampleN @Board50 500020 $
+        DE25Nano.topEntity C.clockGen (pure True) (pure 15)
+  check "DE25-Nano runs the trained network on LEDR0/1"
+    (all (==0) (take 500000 de25Wave)
+      && all (==3) (drop 500010 de25Wave))
   let pressed = C.sampleN @Board50 20 $
         DE1SoC.topEntity C.clockGen (pure False) (pure 15)
   check "pressed active-low KEY0 holds board in reset"

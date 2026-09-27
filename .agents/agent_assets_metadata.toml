@@ -98,3 +98,17 @@ mtime_ms = 1790264983892
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/50023e0b-1b75-4463-af28-0603dc8b7790/c28668ba-97ca-4d03-baa1-a07420c7d986"
 storage_version_token = "1790264997981370"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "wC_W7xfvWID81O7euxtBu"
+uri = "file://deliverables/de25-nano-preparation.tar.xz"
+type = "unspecified"
+title = "DE25-Nano prepared source bundle"
+description = "Trained-network and first-power-on diagnostic Haskell/VHDL, Quartus project generator, pin assignments, timing constraints, and build guide. No .sof yet: Agilex 5 needs Quartus Prime Pro."
+logical_id = "6340101c-9abd-4372-adff-9f7cc3f4b930"
+content_hash = "sha256:760d322dfcc2f2a1c26f6ea8fe539e785c95298a37612bb2cabbd77242260089"
+size = 13252
+mtime_ms = 1790532828126
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cbf682ff-a0e3-4f7b-8fdb-569514a27ece/6340101c-9abd-4372-adff-9f7cc3f4b930/4100d6fb-d707-48dc-833b-41ead4af7b6d"
+storage_version_token = "1790532849503926"
+content_type = "application/octet-stream"

@@ -2,3 +2,4 @@
 - [Clash weight generation](clash-weight-generation.md) — generated fixed-point constants must use fLit, and standalone Clash needs Cabal's package environment.
 - [Quartus installation](quartus-installation.md) — Altera's online bootstrapper works where obsolete direct-download URLs fail; use its shell launcher.
 - [LabsLand remote inputs](labsland-remote-inputs.md) — hardware reports refer to remote web controls, not physical switches; verify the lab interface before assigning pins.
+- [Clash concatenation widths](clash-concatenation-widths.md) — annotate boolToBV widths before chaining ++#, even when the final vector width is known.

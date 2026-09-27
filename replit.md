@@ -61,6 +61,14 @@ The layer-pipelined design passes 50 MHz timing; physical board operation is
 not yet verified. See `docs/switch-led-demo.md` and `boards/de1-soc/README.md`.
 Servo experiments remain preserved on the `servo` branch.
 
+The new `DE25Nano.hs` and `DE25NanoDiagnostic.hs` targets adapt the same
+trained switch-to-LED network for the Terasic DE25-Nano (Agilex 5, eight
+FPGA LEDs). See `boards/de25-nano/README.md` for verified manufacturer
+pin mappings and the separate hardware diagnostic. Clash synthesis and
+software checks are available here, but the installed Quartus Lite cannot
+compile the Agilex 5 `.sof`; that requires Quartus Prime Pro with device
+support. The DE25-Nano hardware has not yet been tested.
+
 - `BrainTrain.hs` — reusable training and Clash-source generation logic
 - `brain.hs` — training demo
 - `Train.hs` — trains and generates `BrainClash.hs`
