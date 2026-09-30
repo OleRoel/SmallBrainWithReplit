@@ -30,6 +30,6 @@ trainSwitches = do
   mapM_ (\(input, target) ->
     putStrLn (show input ++ " -> " ++ show (feed input trained)
       ++ " target " ++ show target)) switchSamples
-  writeSwitchBrain "BrainClash.template.hs" "SwitchBrain.hs" trained
+  writeSwitchBrain "BrainClash.template" "SwitchBrain.hs" trained
   putStrLn "Generated SwitchBrain.hs: 16/16 floating-point classifications correct."
   putStrLn "Next: cabal test switch-led-tests (checks actual generated fixed-point inference)."

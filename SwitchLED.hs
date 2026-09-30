@@ -11,7 +11,7 @@
 
 module SwitchLED where
 
-import Clash.Prelude
+import Clash.Prelude hiding (sample)
 import qualified SwitchBrain as Brain
 
 createDomain vSystem
@@ -23,12 +23,15 @@ type DebounceState = (BitVector 4, Index 500000, BitVector 4)
 -- The entire vector settles together, not independently per bit.
 debounceStep :: DebounceState -> BitVector 4 -> (DebounceState, BitVector 4)
 debounceStep (candidate, count, accepted) sample =
-  let same = sample == candidate
-      nextCount = if not same then 1
-                  else if count == maxBound then maxBound else count + 1
-      settled = same && count == maxBound
-      nextAccepted = if settled then sample else accepted
-  in ((sample, nextCount, nextAccepted), nextAccepted)
+    let same = sample == candidate
+        nextCount
+          | not same = 1
+          | count == maxBound = maxBound
+          | otherwise = count + 1
+        settled = same && count == maxBound
+        nextAccepted = if settled then sample else accepted
+    in ((sample, nextCount, nextAccepted), nextAccepted)
+
 
 switchInputs :: BitVector 4 -> Vec 4 Brain.Weight
 switchInputs switches =
@@ -40,7 +43,7 @@ networkLEDs = outputLEDs . Brain.topEntity . switchInputs
 
 outputLEDs :: Vec 2 Brain.Weight -> BitVector 8
 outputLEDs outputs =
-  let threshold = $$(fLit (0.5)) :: Brain.Weight
+  let threshold = $$(fLit 0.5) :: Brain.Weight
       led0 = outputs !! (0 :: Index 2) >= threshold
       led1 = outputs !! (1 :: Index 2) >= threshold
   in (if led0 then 1 else 0) .|. (if led1 then 2 else 0)
@@ -56,7 +59,7 @@ networkCircuit switches =
       hiddenAtZero = Brain.layerForward (repeat 0) firstLayer
       hidden = register hiddenAtZero
         ((\bits -> Brain.layerForward (switchInputs bits) firstLayer) <$> switches)
-      outputs = (\activation -> Brain.layerForward activation secondLayer) <$> hidden
+      outputs = (`Brain.layerForward` secondLayer) <$> hidden
   in register 0 (outputLEDs <$> outputs)
 
 boardCircuit

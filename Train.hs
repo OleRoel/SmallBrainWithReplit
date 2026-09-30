@@ -16,7 +16,7 @@ trainDemoArguments :: [String] -> IO ()
 trainDemoArguments arguments = do
   sizes <- either (ioError . userError) pure (parseSizes arguments)
   (input, target, initial, trained) <- trainNetwork sizes
-  writeBrainClash "BrainClash.template.hs" "BrainClash.hs" trained
+  writeBrainClash "BrainClash.template" "BrainClash.hs" trained
   putStrLn $ "before: " ++ show (feed input initial)
   putStrLn $ "after:  " ++ show (feed input trained)
   putStrLn $ "target: " ++ show target
