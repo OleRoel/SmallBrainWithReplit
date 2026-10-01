@@ -1,22 +1,24 @@
 module Main where
 
 import BrainTrain
+import Paths_brain (getDataFileName)
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
 import SwitchTraining (trainSwitches)
 
 main :: IO ()
 main = do
+  templatePath <- getDataFileName "BrainClash.template"
   arguments <- getArgs
   case arguments of
-    ["--switch-leds"] -> trainSwitches
-    _ -> trainDemoArguments arguments
+    ["--switch-leds"] -> trainSwitches templatePath
+    _ -> trainDemoArguments templatePath arguments
 
-trainDemoArguments :: [String] -> IO ()
-trainDemoArguments arguments = do
+trainDemoArguments :: FilePath -> [String] -> IO ()
+trainDemoArguments templatePath arguments = do
   sizes <- either (ioError . userError) pure (parseSizes arguments)
   (input, target, initial, trained) <- trainNetwork sizes
-  writeBrainClash "BrainClash.template" "BrainClash.hs" trained
+  writeBrainClash templatePath "BrainClash.hs" trained
   putStrLn $ "before: " ++ show (feed input initial)
   putStrLn $ "after:  " ++ show (feed input trained)
   putStrLn $ "target: " ++ show target

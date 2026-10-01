@@ -20,8 +20,8 @@ initialBrain =
   in [(replicate 3 0.5, rows 3 (take 12 values)),
       (replicate 2 0.5, rows 2 (drop 12 values))]
 
-trainSwitches :: IO ()
-trainSwitches = do
+trainSwitches :: FilePath -> IO ()
+trainSwitches templatePath = do
   let trained = iterate (learnMany switchSamples) initialBrain !! 20000
       classify = map (>= 0.5)
       correct (input, target) = classify (feed input trained) == classify target
@@ -30,6 +30,6 @@ trainSwitches = do
   mapM_ (\(input, target) ->
     putStrLn (show input ++ " -> " ++ show (feed input trained)
       ++ " target " ++ show target)) switchSamples
-  writeSwitchBrain "BrainClash.template" "SwitchBrain.hs" trained
+  writeSwitchBrain templatePath "SwitchBrain.hs" trained
   putStrLn "Generated SwitchBrain.hs: 16/16 floating-point classifications correct."
   putStrLn "Next: cabal test switch-led-tests (checks actual generated fixed-point inference)."
