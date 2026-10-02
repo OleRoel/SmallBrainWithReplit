@@ -1,49 +1,59 @@
--- | Train a 784 → H → 10 network on MNIST data read from a Parquet file.
+-- | Parallel variant of TrainMNIST: trains a 784 → H → 10 network using
+-- model averaging across N cores.
 --
--- Sequential single-core version. Rows are streamed from DuckDB one at a
--- time; DuckDB shuffles with ORDER BY random() so no in-memory copy of the
--- full dataset is needed.
+-- See TrainMNIST.hs for the sequential single-core version.
 --
--- See TrainMNISTParallel.hs for the multi-core model-averaging variant.
+-- Parallelism strategy: model averaging
+-- -------------------------------------
+-- Each epoch splits the dataset into N disjoint partitions (one per core)
+-- using DuckDB's row_number() % N.  Each partition is trained independently
+-- in its own DuckDB process + Haskell thread, then the resulting N models
+-- are averaged weight-by-weight.  The total data seen per epoch is still
+-- 100% — just processed in parallel.
 --
 -- Memory model
 -- ------------
--- Each row is parsed and fed into 'learn', then garbage collected.
--- Peak heap is O(network size), not O(dataset size).
+-- Each worker streams its partition from DuckDB one row at a time via lazy
+-- hGetContents, so peak heap per worker is O(network size), not O(data size).
 -- 'force' after every weight update prevents thunk accumulation.
 --
 -- Diagnosing performance
 -- ----------------------
 --   cabal run train-mnist -- +RTS -s        -- summary (time, GC, alloc)
 --   cabal run train-mnist -- +RTS -hT       -- heap profile (needs -prof build)
+--   cabal run train-mnist -- +RTS -N4       -- override core count at runtime
 --
 -- Usage (run from any directory)
 -- --------------------------------
 --   cabal run train-mnist
---   cabal run train-mnist -- data/mnist_train.parquet 128 10
+--   cabal run train-mnist -- data/mnist_train.parquet 128 5 4
 --
 -- Positional arguments (all optional)
 --   1. path to training Parquet file  (default: <project-root>/data/mnist_train.parquet)
 --   2. hidden layer size               (default: 64)
 --   3. number of epochs                (default: 5)
+--   4. number of parallel workers      (default: all available cores)
 
 module Main where
 
 import BrainTrain
-import Control.DeepSeq    (force)
-import Control.Exception  (evaluate)
-import Control.Monad      (foldM)
-import Data.List          (maximumBy)
-import Data.Maybe         (fromMaybe, listToMaybe)
-import Data.Ord           (comparing)
-import Data.Time.Clock    (diffUTCTime, getCurrentTime)
-import Paths_brain        (getDataDir, getDataFileName)
-import System.Environment (getArgs)
-import System.FilePath    ((</>))
-import System.IO          (hClose, hGetContents)
-import System.Process     (CreateProcess (..), StdStream (..),
-                           createProcess, proc, waitForProcess)
-import Text.Read          (readMaybe)
+import Control.Concurrent          (setNumCapabilities)
+import Control.Concurrent.Async    (mapConcurrently)
+import Control.DeepSeq             (force)
+import Control.Exception           (evaluate)
+import Control.Monad               (foldM)
+import Data.List                   (maximumBy)
+import Data.Maybe                  (fromMaybe, listToMaybe)
+import Data.Ord                    (comparing)
+import Data.Time.Clock             (diffUTCTime, getCurrentTime)
+import GHC.Conc                    (getNumProcessors)
+import Paths_brain                 (getDataDir, getDataFileName)
+import System.Environment          (getArgs)
+import System.FilePath             ((</>))
+import System.IO                   (hClose, hGetContents)
+import System.Process              (CreateProcess (..), StdStream (..),
+                                    createProcess, proc, waitForProcess)
+import Text.Read                   (readMaybe)
 
 -- ---------------------------------------------------------------------------
 -- Parsing
@@ -76,7 +86,7 @@ duckdbArgs :: String -> [String]
 duckdbArgs query = ["-list", "-noheader", "-separator", "|", "-c", query]
 
 -- | Open a DuckDB process and return a lazy string of its stdout plus a
--- cleanup action.  The caller must fully force the string before cleanup.
+-- cleanup action.  The caller must force the string fully before cleanup.
 duckdbStream :: String -> IO (String, IO ())
 duckdbStream query = do
   (_, Just hout, _, ph) <- createProcess
@@ -104,24 +114,58 @@ loadProbe path n = do
   return result
 
 -- ---------------------------------------------------------------------------
--- Training
+-- Parallel training
 -- ---------------------------------------------------------------------------
 
--- | Run one epoch: stream all rows from DuckDB in random order and update
--- weights sample-by-sample.  Holds only one sample + the current network
--- in memory at a time.
-streamEpoch :: FilePath -> Brain -> IO Brain
-streamEpoch path brain = do
-  let query = baseSelect path ++ " ORDER BY random()"
+-- | Element-wise addition of two layers.
+addLayer :: Layer -> Layer -> Layer
+addLayer (b1, w1) (b2, w2) =
+  ( zipWith (+) b1 b2
+  , zipWith (zipWith (+)) w1 w2
+  )
+
+-- | Scale all weights and biases in a layer by a scalar.
+scaleLayer :: Double -> Layer -> Layer
+scaleLayer s (bias, weights) =
+  ( map (s *) bias
+  , map (map (s *)) weights
+  )
+
+-- | Average a list of brains by weight-wise arithmetic mean.
+averageBrains :: [Brain] -> Brain
+averageBrains []     = error "averageBrains: empty list"
+averageBrains [b]    = b
+averageBrains brains =
+  let n    = fromIntegral (length brains) :: Double
+      sums = foldl1 (zipWith addLayer) brains
+  in map (scaleLayer (1 / n)) sums
+
+-- | Train on one disjoint partition of the dataset.
+-- Partition workerIdx receives the rows where row_number() % nWorkers = workerIdx.
+trainWorker :: FilePath -> Int -> Int -> Brain -> IO Brain
+trainWorker path workerIdx nWorkers brain = do
+  let numbered = "SELECT *, (row_number() OVER ()) - 1 AS rn FROM '" ++ path ++ "'"
+      query    = "SELECT label, array_to_string(pixels, ',') "
+              ++ "FROM (" ++ numbered ++ ") "
+              ++ "WHERE rn % " ++ show nWorkers ++ " = " ++ show workerIdx
+              ++ " ORDER BY random()"
   (output, cleanup) <- duckdbStream query
   let samples = map parseSample $ filter (not . null) $ lines output
-      -- force (learn …) evaluates the updated brain to NF at every step,
-      -- preventing a thunk chain building up over tens of thousands of steps.
+      -- force (learn …) keeps the brain in normal form after every update,
+      -- preventing a thunk chain from accumulating over thousands of steps.
       trained  = foldl' (\b (inp, tgt) -> force (learn inp tgt b)) brain samples
-  -- evaluate drives foldl' to completion, draining the lazy IO before cleanup.
   trained' <- evaluate trained
   cleanup
   return trained'
+
+-- | Run one epoch in parallel: N workers train on disjoint partitions,
+-- results are averaged.
+parallelEpoch :: FilePath -> Int -> Brain -> IO Brain
+parallelEpoch path nWorkers brain = do
+  brains <- mapConcurrently
+              (\i -> trainWorker path i nWorkers brain)
+              [0 .. nWorkers - 1]
+  return (averageBrains brains)
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -165,6 +209,10 @@ main = do
       hidden    = fromMaybe 64 $ nth args 1 >>= readMaybe
       nEpochs   = fromMaybe 5  $ nth args 2 >>= (readMaybe :: String -> Maybe Int)
 
+  -- Auto-detect cores unless overridden by the 4th argument.
+  nCores <- maybe getNumProcessors return (nth args 3 >>= readMaybe)
+  setNumCapabilities nCores
+
   putStrLn $ "Training file : " ++ trainPath
   putStrLn   "Loading probe set (1 000 random samples) ..."
   probe <- loadProbe trainPath 1000
@@ -176,7 +224,8 @@ main = do
 
   putStrLn $ "Architecture  : " ++ show arch
   putStrLn $ "Epochs        : " ++ show nEpochs
-  putStrLn   "Streaming rows from DuckDB one at a time, shuffled per epoch.\n"
+  putStrLn $ "Workers       : " ++ show nCores
+             ++ " (each trains on 1/" ++ show nCores ++ " of the data, weights averaged)\n"
 
   brain0 <- newBrain arch
   putStrLn $ "Epoch 0 (untrained)  probe accuracy: " ++ showPct (accuracy probe brain0)
@@ -184,7 +233,7 @@ main = do
   trained <- foldM
     (\brain epoch -> do
       t0 <- getCurrentTime
-      b' <- streamEpoch trainPath brain
+      b' <- parallelEpoch trainPath nCores brain
       t1 <- getCurrentTime
       let secs = realToFrac (diffUTCTime t1 t0) :: Double
       putStrLn $ "Epoch " ++ show epoch ++ "/" ++ show nEpochs

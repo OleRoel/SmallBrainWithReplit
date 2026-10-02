@@ -81,6 +81,23 @@ executable train-mnist
     , random
     , time     >= 1.9
 
+executable train-mnist-parallel
+  main-is:          TrainMNISTParallel.hs
+  hs-source-dirs:   .
+  default-language: Haskell2010
+  ghc-options:      -Wall -O2 -threaded
+  other-modules:    Paths_brain
+  autogen-modules:  Paths_brain
+  build-depends:
+      base     >= 4.20 && < 5
+    , async    >= 2.2
+    , brain
+    , deepseq  >= 1.4
+    , filepath >= 1.4
+    , process  >= 1.6
+    , random
+    , time     >= 1.9
+
 -- ---------------------------------------------------------------------------
 -- Tests
 -- ---------------------------------------------------------------------------
