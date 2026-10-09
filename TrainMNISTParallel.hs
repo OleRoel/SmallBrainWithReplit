@@ -1,4 +1,4 @@
--- | Parallel variant of TrainMNIST: trains a 784 → H → 10 network using
+
 -- model averaging across N cores.
 --
 -- See TrainMNIST.hs for the sequential single-core version.
